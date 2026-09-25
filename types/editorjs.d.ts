@@ -1,0 +1,12 @@
+declare module '@editorjs/header';
+declare module '@editorjs/list';
+declare module '@editorjs/image';
+declare module '@editorjs/embed';
+declare module '@editorjs/table';
+declare module '@editorjs/paragraph';
+declare module 'editorjs-html';
+declare module '@editorjs/underline';
+declare module 'editorjs-drag-drop';
+declare module 'editorjs-text-alignment-blocktune';
+declare module '@editorjs/inline-code';
+declare module 'editorjs-undo';
