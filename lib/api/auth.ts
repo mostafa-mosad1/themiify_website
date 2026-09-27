@@ -27,7 +27,7 @@ export async function loginUser(credentials: {
   error?: string;
 }> {
   try {
-    const res = await apiClient<ILoginResponse>("/auth/login", {
+    const res = await apiClient<ILoginResponse>("/login", {
       method: "POST",
       body: JSON.stringify(credentials),
     });

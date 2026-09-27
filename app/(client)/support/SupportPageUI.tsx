@@ -42,6 +42,8 @@ import {
 } from "@/lib/api/support-categories";
 import { fetchSupportChannels, ISupportChannel } from "@/lib/api/support-channels";
 
+const FEEDBACK_COOLDOWN_MINUTES = 10;
+
 // أيقونات التواصل - صور محلية
 const iconImages: Record<string, any> = {
   whatsapp: whatsapp,
@@ -284,6 +286,8 @@ function buildChannelUrl(platform: string, val: string): string {
 export default function SupportPageUI() {
   const [openId, setOpenId] = useState<number | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
+  const [feedbackMinutesRemaining, setFeedbackMinutesRemaining] = useState(0);
 
   const [questionsData, setQuestionsData] = useState<ISupportQuestion[]>([]);
   const [categoriesData, setCategoriesData] = useState<ISupportCategory[]>([]);
@@ -380,7 +384,7 @@ export default function SupportPageUI() {
     const ts = localStorage.getItem("feedback_submitted_at");
     if (ts) {
       const elapsed = Date.now() - parseInt(ts, 10);
-      if (elapsed < 10 * 60 * 1000) {
+      if (elapsed < FEEDBACK_COOLDOWN_MINUTES * 60 * 1000) {
         setHasSubmitted(true);
       }
     }
@@ -388,6 +392,16 @@ export default function SupportPageUI() {
 
   const toggleQuestion = (id: number) => {
     setOpenId((prev) => (prev === id ? null : id));
+  };
+
+  const handleSubmittedFeedbackClick = () => {
+    const timestamp = localStorage.getItem("feedback_submitted_at");
+    const remaining = timestamp
+      ? FEEDBACK_COOLDOWN_MINUTES * 60 * 1000 - (Date.now() - parseInt(timestamp, 10))
+      : 0;
+
+    setFeedbackMinutesRemaining(Math.ceil(Math.max(remaining, 0) / 60000));
+    setShowFeedbackPopup(true);
   };
 
   const renderSocialIcon = (link: FormattedSocialChannel) => {
@@ -492,6 +506,28 @@ export default function SupportPageUI() {
 
   return (
     <div>
+      {showFeedbackPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-2xl text-orange-500">
+              ⏳
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-gray-800">شكرًا لتقييمك</h2>
+            <p className="mb-5 text-gray-600">
+              {feedbackMinutesRemaining > 0
+                ? `يمكنك إعادة إرسال التقييم بعد ${feedbackMinutesRemaining} دقيقة.`
+                : "يمكنك إرسال تقييم جديد الآن."}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowFeedbackPopup(false)}
+              className="w-full rounded-xl bg-orange-500 px-4 py-3 font-bold text-white transition-colors hover:bg-orange-600"
+            >
+              حسنًا
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col gap-4 w-11/12 mx-auto">
         {/* Header */}
         <div className="head bg-glass px-10 py-6 rounded-2xl shadow-sm flex items-center justify-between relative mt-16">
@@ -522,7 +558,11 @@ export default function SupportPageUI() {
               <p>لن يستغرق التقييم أكثر من 30 ثانية</p>
             </div>
             {hasSubmitted ? (
-              <Button className="mt-4 !bg-white !text-black w-fit" icon={<FaStar size={20} color="#FFB900" />}>
+              <Button
+                className="mt-4 !bg-white !text-black w-fit"
+                icon={<FaStar size={20} color="#FFB900" />}
+                onClick={handleSubmittedFeedbackClick}
+              >
                 شكرا لتقيمك
               </Button>
             ) : (

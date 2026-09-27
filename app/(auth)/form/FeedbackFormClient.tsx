@@ -212,9 +212,9 @@ const FeedbackFormPage = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [showDifficultyField, setShowDifficultyField] = useState(false);
-  const [cooldownBlocked, setCooldownBlocked] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [isChecking, setIsChecking] = useState(true);
+  const [showCooldownPopup, setShowCooldownPopup] = useState(false);
 
   // Auto populate email if user is logged in
   useEffect(() => {
@@ -231,17 +231,17 @@ const FeedbackFormPage = () => {
         const elapsed = Date.now() - parseInt(ts, 10);
         const remaining = COOLDOWN_MINUTES * 60 * 1000 - elapsed;
         if (remaining > 0) {
-          setCooldownBlocked(true);
           setCooldownRemaining(Math.ceil(remaining / 60000));
           setIsChecking(false);
           return;
         }
+        localStorage.removeItem(COOLDOWN_KEY);
       }
-      setCooldownBlocked(false);
+      setCooldownRemaining(0);
       setIsChecking(false);
     };
     check();
-    const interval = setInterval(check, 30000);
+    const interval = setInterval(check, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -294,11 +294,14 @@ const FeedbackFormPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    if (cooldownBlocked) {
-      toast.error(`يرجى الانتظار ${cooldownRemaining} دقيقة قبل إرسال تقييم آخر`, {
-        duration: 4000,
-        position: "bottom-right",
-      });
+    const submittedAt = localStorage.getItem(COOLDOWN_KEY);
+    const remaining = submittedAt
+      ? COOLDOWN_MINUTES * 60 * 1000 - (Date.now() - parseInt(submittedAt, 10))
+      : 0;
+
+    if (remaining > 0) {
+      setCooldownRemaining(Math.ceil(remaining / 60000));
+      setShowCooldownPopup(true);
       return;
     }
 
@@ -334,20 +337,10 @@ const FeedbackFormPage = () => {
 
       // Save submission timestamp to localStorage
       localStorage.setItem(COOLDOWN_KEY, Date.now().toString());
-
-      toast.success("✅ تم إرسال تقييمك بنجاح! شكراً لك.", {
-        duration: 3500,
-        position: "bottom-right",
-      });
-
-      // Redirect after a short delay
-      setTimeout(() => {
-        router.push("/themes");
-      }, 1500);
+      router.push("/support");
     } catch (error: any) {
       toast.error("❌ فشل الإرسال: " + (error?.message || "حدث خطأ"), {
         duration: 4000,
-        position: "bottom-right",
       });
     } finally {
       setSubmitting(false);
@@ -363,38 +356,32 @@ const FeedbackFormPage = () => {
     );
   }
 
-  // ─── Cooldown Block ────────────────────────────────────────────────────
-  if (cooldownBlocked) {
-    return (
-      <div
-        dir="rtl"
-        className="min-h-[70vh] flex items-center justify-center p-4"
-      >
-        <div className="max-w-md w-full text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center text-4xl shadow-2xl mb-6">
-            ⏳
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">لقد أرسلت تقييماً مسبقاً</h2>
-          <p className="text-gray-600 mb-6">
-            يمكنك إرسال تقييم جديد بعد {cooldownRemaining} دقيقة
-          </p>
-          <button
-            onClick={() => router.push("/themes")}
-            className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-colors"
-          >
-            تصفح الثيمات
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // ─── Main Form ─────────────────────────────────────────────────────────
   return (
     <div
       dir="rtl"
       className="min-h-screen overflow-y-auto bg-glass md:py-8 md:px-4 p-2"
     >
+      {showCooldownPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600">
+              ✓
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-gray-800">شكرًا لتقييمك</h2>
+            <p className="mb-5 text-gray-600">
+              يمكنك إعادة إرسال التقييم بعد {cooldownRemaining} دقيقة.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowCooldownPopup(false)}
+              className="w-full rounded-xl bg-orange-500 px-4 py-3 font-bold text-white transition-colors hover:bg-orange-600"
+            >
+              حسنًا
+            </button>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center relative overflow-hidden rounded-2xl bg-white text-black p-8 mb-2">

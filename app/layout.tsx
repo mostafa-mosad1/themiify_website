@@ -37,7 +37,7 @@ export default function RootLayout({
         {...({} as any)}
       >
         {/* <ThemeProvider> */} 
-          <Toaster />
+          <Toaster position="top-right" expand gap={10} closeButton />
           <div className=" mx-auto w-[96%] ">
             {children}
           </div>

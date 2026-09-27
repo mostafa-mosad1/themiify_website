@@ -54,6 +54,9 @@ export interface IFeedbackItem {
 export async function submitFeedback(
   feedbackData: IFeedbackPayload
 ): Promise<{ success: boolean; data?: any; error?: string; message?: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
   try {
     const ratingVal =
       typeof feedbackData.rating === "number"
@@ -81,6 +84,7 @@ export async function submitFeedback(
     const res = await apiClient<any>("/feedbacks", {
       method: "POST",
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!res.success) {
@@ -100,8 +104,13 @@ export async function submitFeedback(
     console.error("❌ Error submitting feedback:", error);
     return {
       success: false,
-      error: error?.message || "حدث خطأ غير متوقع أثناء إرسال التقييم",
+      error:
+        error?.name === "AbortError"
+          ? "انتهت مهلة الاتصال بالخادم، يرجى المحاولة مرة أخرى"
+          : error?.message || "حدث خطأ غير متوقع أثناء إرسال التقييم",
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
