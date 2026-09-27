@@ -594,11 +594,11 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
       // User Guide / Pages
       const parsedPages = JSON.parse(pagesPayload);
       parsedPages.forEach((page: any, index: number) => {
-        themeFormData.append(`pages[${index}][title]`, page.title);
-        themeFormData.append(`pages[${index}][slug]`, page.slug);
-        themeFormData.append(`pages[${index}][content]`, page.content);
+        themeFormData.append(`theme_pages[${index}][title]`, page.title);
+        themeFormData.append(`theme_pages[${index}][slug]`, page.slug);
+        themeFormData.append(`theme_pages[${index}][content]`, page.content);
         themeFormData.append(
-          `pages[${index}][is_default]`,
+          `theme_pages[${index}][default]`,
           page.is_default ? "1" : "0",
         );
       });
