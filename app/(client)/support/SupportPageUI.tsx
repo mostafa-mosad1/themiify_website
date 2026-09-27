@@ -694,7 +694,7 @@ export default function SupportPageUI() {
         </div>
 
         {/* Bottom Row: FAQ + Contact */}
-        <div className="flex flex-row flex-wrap gap-4">
+        <div className="flex flex-col lg:flex-row flex-wrap gap-4">
           {/* FAQ Accordion */}
           <div className="popular-questions bg-glass p-4 md:p-6 rounded-2xl shadow-sm flex-1 min-w-[280px]">
             <div className="flex items-center gap-3 mb-5">
@@ -808,7 +808,7 @@ export default function SupportPageUI() {
           </div>
 
           {/* Contact Section */}
-          <div className="contact bg-glass p-4 rounded-2xl shadow-sm w-full md:w-1/3 h-fit">
+          <div className="contact bg-glass p-4 rounded-2xl shadow-sm w-full lg:w-1/3 h-fit">
             <h2 className="text-base md:text-xl font-bold mb-5">
               تواصل معنا عن طريق:
             </h2>

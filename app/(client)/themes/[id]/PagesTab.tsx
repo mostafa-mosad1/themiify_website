@@ -175,7 +175,7 @@ export default function PagesTabs({
       
         <div className="mb-[30px]">
           <h2 className="text-[var(--text-primary)] font-semibold text-xl">
-            {pages[activePage]?.name || 'Customization Guide'}
+            طريقة تخصيص الثيم على منصة {platformName || "المنصة"}
           </h2>
 
           <div className="flex justify-start items-center gap-1 mt-1">
