@@ -57,16 +57,16 @@ const CategoryFilterBar = ({
   }
 
   return (
-    <div className="flex md:flex-wrap gap-1 md:gap-2 mt-2 overflow-x-scroll md:overflow-x-auto catFilter">
+    <div className="catFilter mt-2 flex gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:gap-2 md:overflow-x-visible">
       {/* "All" button */}
       <Button
         variant="solid"
         solidColor={selectedCategory === null ? "" : "#f3f4f6"}
-        className={`text-sm transition-all flex justify-center items-center h-fit ${
+        className={`flex items-center justify-center rounded-full text-[11px] transition-all sm:text-xs md:text-sm ${
           selectedCategory === null
             ? "gradient-primary text-white shadow-md"
-            : "!text-gray-700 hover:!bg-gray-200 bg-glass"
-        }  !px-1 min-w-24 !rounded-full h-fit`}
+            : "bg-glass !text-gray-700 hover:!bg-gray-200"
+        } !px-2 py-2 sm:!px-3 md:!px-4 min-w-[76px] h-[38px] md:h-[42px] md:min-w-[90px]`}
         onClick={() => onSelectCategory(null)}
       >
         {allLabel}
@@ -82,11 +82,11 @@ const CategoryFilterBar = ({
             key={category.id}
             variant="solid"
             solidColor={isActive ? "" : "#f3f4f6"}
-            className={`text-sm transition-all flex justify-center items-center h-fit ${
+            className={`flex items-center justify-center rounded-full text-[11px] transition-all sm:text-xs md:text-sm ${
               isActive
                 ? "gradient-primary text-white shadow-md"
-                : "!text-gray-700 hover:!bg-gray-200 bg-glass"
-            } py-2 px-6 min-w-40 !rounded-full`}
+                : "bg-glass !text-gray-700 hover:!bg-gray-200"
+            } !px-2 py-2 sm:!px-3 md:!px-4 min-w-[90px] h-[38px] md:h-[42px] md:min-w-[120px]`}
             onClick={() => onSelectCategory(category.name)}
             icon={icon}
           >
