@@ -21,9 +21,9 @@ export default async function ClientDashboardPage() {
   return (
     <main className="pb-10">
       <div dir="rtl" className="h-full pb-10">
-        <div className="w-11/12 mx-auto px-4 md:py-6 py-5">
+        <div className="mx-auto w-full px-3 py-5 sm:w-11/12 sm:px-4 md:py-6">
           {/* Header */}
-          <div className="mb-10">
+          <div className="mb-6 md:mb-10">
             <div className="flex items-center gap-2 mb-2">
               <BsStars className="text-[#FFCC00] rotate-180" size={20} />
               <h1
@@ -33,10 +33,10 @@ export default async function ClientDashboardPage() {
                 {header?.badge || "مرحبًا بك في لوحة التحكم"}
               </h1>
             </div>
-            <p className="md:text-3xl text-xl font-bold text-black dark:text-white mb-2">
+            <p className="mb-2 text-xl font-bold text-black dark:text-white md:text-3xl">
               {header?.title || "لنبدأ باختيار الثيم الأنسب لمتجرك"}
             </p>
-            <p className="text-black dark:text-white text-base md:text-lg font-normal max-w-3xl leading-relaxed">
+            <p className="max-w-3xl text-sm font-normal leading-relaxed text-black dark:text-white md:text-lg">
               {header?.subtitle ||
                 "ستجد هنا خطوات واضحة تساعدك على اختيار وتخصيص الثيم ومتابعة تقدمك حتى يصبح متجرك جاهزًا."}
             </p>
@@ -44,30 +44,26 @@ export default async function ClientDashboardPage() {
 
           {/* Timeline Bar (الـ Stepper مطابق للتصميم المرفق) */}
           {timeline && timeline.length > 0 && (
-            <div className="mb-14 p-4 md:p-8 bg-glass rounded-3xl overflow-x-auto shadow-sm border border-white/60">
-              <div className="min-w-[580px] md:min-w-0">
-                {/* الوصف أعلى الـ Stepper كما في التصميم */}
-                <p className="text-center text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium mb-10 leading-relaxed max-w-2xl mx-auto">
-                  هتساعدك لوحة التحكم دي إنك تجهّز ثيم متجرك على سلة خطوة بخطوة. خُد وقتك وإحنا معاك في كل خطوة
-                </p>
+            <div className="mb-8 md:mb-14">
+              <div className="min-w-0 md:min-w-[580px]">
 
                 {/* شريط الخطوات المتصل */}
-                <div className="relative flex items-center justify-between px-4 md:px-10">
+                <div className="relative flex items-center justify-between gap-2 ">
                   {/* خط الربط المستمر خلف الدوائر من أول خطوة لآخر خطوة */}
-                  <div className="absolute top-6 md:top-7 right-[10%] left-[10%] h-[2px] bg-[#E2E8F0] dark:bg-gray-700 -z-0" />
+                  <div className="absolute -z-0 h-[2px] bg-[#E2E8F0] right-[8%] left-[8%] top-5 md:right-[0%] md:left-[10%] md:top-7 dark:bg-gray-700" />
 
                   {timeline.map((item) => (
                     <div
                       key={item.number}
-                      className="flex-1 flex flex-col items-center relative z-10 text-center"
+                      className="flex-1 flex flex-col  relative z-10 text-center whitespace-nowrap"
                     >
                       {/* دائرة الرقم البيضاء المظللة */}
-                      <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white dark:bg-gray-800 shadow-[0_4px_16px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-gray-700 flex items-center justify-center font-bold text-lg md:text-xl text-[#0E132C] dark:text-white transition-all duration-300 hover:scale-105">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white text-base font-bold text-[#0E132C] shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-all duration-300 hover:scale-105 dark:border-gray-700 dark:bg-gray-800 dark:text-white md:h-14 md:w-14 md:text-xl">
                         {item.number}
                       </div>
 
                       {/* عنوان الخطوة */}
-                      <span className="mt-3 md:mt-4 text-xs md:text-sm font-bold text-[#1F2937] dark:text-gray-200">
+                      <span className="mt-2 text-[10px] font-bold text-[#1F2937] text-start dark:text-gray-200 md:mt-4 md:text-sm">
                         {item.title}
                       </span>
                     </div>
@@ -81,25 +77,26 @@ export default async function ClientDashboardPage() {
           <div className="space-y-6">
             {steps && steps.length > 0 ? (
               steps.map((step: IStepItem) => {
-                const fallbackImg = fallbackImages[step.step_number] || sallaImage;
+                const fallbackImg =
+                  fallbackImages[step.step_number] || sallaImage;
 
                 return (
                   <div
                     key={step.step_number}
-                    className="rounded-2xl overflow-hidden flex p-4 md:p-6 bg-glass flex-col-reverse md:flex-row items-center gap-6 transition-all duration-300 hover:shadow-lg"
+                    className="flex flex-col-reverse items-center gap-4 overflow-hidden rounded-2xl bg-glass p-4 transition-all duration-300 hover:shadow-lg md:flex-row md:gap-6 md:p-6"
                   >
                     {/* المحتوى النصي */}
-                    <div className="section-content flex items-start gap-3 w-full md:w-1/2">
+                    <div className="section-content flex w-full items-start gap-3 md:w-1/2">
                       <div className="mt-1 number w-8 md:w-12 h-8 md:h-12 rounded-full text-[var(--primary-color)] text-base md:text-2xl font-bold shadow-[1px_-1px_#fff,0_1px_#f26b21] flex items-center justify-center shrink-0">
                         {step.step_number}
                       </div>
 
-                      <div className="content py-1 w-[calc(100%-3rem)]">
-                        <h2 className="text-base md:text-2xl font-bold text-black dark:text-white mb-2">
+                      <div className="content w-[calc(100%-3rem)] py-1">
+                        <h2 className="mb-2 text-base font-bold text-black dark:text-white md:text-2xl">
                           {step.title}
                         </h2>
                         {step.subtitle && (
-                          <p className="text-gray-600 dark:text-gray-300 text-xs md:text-base font-medium mb-4">
+                          <p className="mb-4 text-xs font-medium text-gray-600 dark:text-gray-300 md:text-base">
                             {step.subtitle}
                           </p>
                         )}
@@ -151,7 +148,7 @@ export default async function ClientDashboardPage() {
                         {step.button && (
                           <Button
                             url={step.button.url || "#"}
-                            className="px-8 flex justify-center items-center min-w-[180px]"
+                            className="flex w-full items-center justify-center px-8 md:min-w-[180px] md:w-auto"
                             openInNewTab={step.button.url?.startsWith("http")}
                           >
                             {step.button.text || "استمرار"}
@@ -161,20 +158,20 @@ export default async function ClientDashboardPage() {
                     </div>
 
                     {/* صورة الخطوة */}
-                    <div className="relative w-full md:w-1/2 flex items-center justify-center min-h-[220px] md:min-h-[280px]">
+                    <div className="relative flex min-h-[180px] w-full items-center justify-center md:min-h-[280px] md:w-1/2">
                       {step.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={step.image_url}
                           alt={step.title}
-                          className="w-full max-h-[320px] object-contain rounded-xl drop-shadow-md"
+                          className="w-full max-h-[220px] rounded-xl object-contain drop-shadow-md md:max-h-[320px]"
                           loading="lazy"
                         />
                       ) : (
                         <Image
                           src={fallbackImg}
                           alt={step.title}
-                          className="object-contain max-h-[320px] rounded-xl"
+                          className="max-h-[220px] rounded-xl object-contain md:max-h-[320px]"
                         />
                       )}
                     </div>
