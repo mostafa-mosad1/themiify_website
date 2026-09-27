@@ -26,6 +26,7 @@ export interface ITheme {
   rating?: string | number | null;
   rating_count?: number | null;
   purchase_count?: number | null;
+  platform_rank?: number | null;
   banner_url?: string | null;
   image_url?: string | null;
   images?: string[];

@@ -116,6 +116,14 @@ function getYoutubeId(url?: string | null) {
   return "";
 }
 
+const PLATFORM_LOGOS: Record<string, string> = {
+  salla: "https://cdn.salla.network/images/logo/logo.svg",
+  sharry: "https://dev.gosharry.com/themes/gosharrytheme/build/assets/logo_admin-0f8bf526.png",
+  shopify: "https://cdn.worldvectorlogo.com/logos/shopify.svg",
+  woocommerce: "https://cdn.worldvectorlogo.com/logos/woocommerce.svg",
+  zid: "/images/logo_zid.svg",
+};
+
 // ─── Page component ───────────────────────────────────────────────────────────
 const ThemeDetailPage = async ({
   params,
@@ -159,6 +167,9 @@ const ThemeDetailPage = async ({
     .filter((page: any) => page.sections.length > 0);
 
   const platformName = theme.platform?.name || theme.platform_name || "Salla";
+  const platformLogo =
+    theme.platform?.icon || PLATFORM_LOGOS[platformName.toLowerCase()];
+  const introVideoUrl = theme.video_link || theme.playlist_link || "";
 
   const rawImages = (theme as any).images;
   const mediaUrls: string[] = [];
@@ -215,19 +226,19 @@ const ThemeDetailPage = async ({
         />
       </div>
 
-      {theme.video_link || theme.playlist_link ? (
+      {introVideoUrl ? (
         <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl p-4 md:p-5">
           <div className="flex flex-col md:flex-row items-center gap-5">
             <a
-              href={theme.video_link || theme.playlist_link}
+              href={introVideoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="relative w-full md:w-[48%] aspect-video rounded-2xl overflow-hidden bg-black group"
             >
               <img
                 src={
-                  getYoutubeId(theme.video_link || theme.playlist_link)
-                    ? `https://i.ytimg.com/vi/${getYoutubeId(theme.video_link || theme.playlist_link)}/hqdefault.jpg`
+                  getYoutubeId(introVideoUrl)
+                    ? `https://i.ytimg.com/vi/${getYoutubeId(introVideoUrl)}/hqdefault.jpg`
                     : theme.banner_url || "/images/placeholder.svg"
                 }
                 alt={`فيديو تعريفي عن ${theme.name}`}
@@ -249,7 +260,16 @@ const ThemeDetailPage = async ({
               </p>
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                 <span className="text-[var(--text-primary)] font-semibold">
-                  رقم #{theme.platform_rank || 1} على منصة {platformName}
+                  <span className="inline-flex items-center gap-2">
+                    {platformLogo && (
+                      <img
+                        src={platformLogo}
+                        alt={platformName}
+                        className="h-6 w-6 object-contain"
+                      />
+                    )}
+                    <span>رقم #{theme.platform_rank || 1} على منصة {platformName}</span>
+                  </span>
                 </span>
                 <span className="flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
                   <span>({theme.rating_count || 0} تقييم)</span>
@@ -261,7 +281,7 @@ const ThemeDetailPage = async ({
                 </span>
               </div>
               <a
-                href={theme.video_link || theme.playlist_link}
+                href={introVideoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex rounded-full bg-orange-500 px-5 py-2.5 font-bold text-white hover:bg-orange-600 transition-colors"
