@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,18 +6,25 @@ import { useParams, useRouter } from "next/navigation";
 import { fetchBlogDetails, fetchBlogs, IBlog } from "@/lib/api/blogs";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import {
-  FaCalendar,
-  FaEye,
-  FaShoppingCart,
-  FaVideo,
-  FaImage,
-  FaArrowRight,
-} from "react-icons/fa";
+import { FaImage, FaArrowRight } from "react-icons/fa";
 import { BiSearch } from "react-icons/bi";
 import { stripHtml, cleanAndFormatBlogContent } from "@/lib/utils";
 
 type Essay = IBlog;
+
+const formatArticleDate = (value?: string) => {
+  if (!value) return "-";
+
+  try {
+    return new Date(value).toLocaleDateString("ar-EG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "-";
+  }
+};
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 function Sidebar({
@@ -56,8 +64,8 @@ function Sidebar({
   };
 
   return (
-    <aside className="w-full lg:w-72 xl:w-80 flex-shrink-0 sticky top-6">
-      <div className="sticky top-6 flex flex-col gap-6">
+    <aside className="w-full lg:w-72 xl:w-80 flex-shrink-0 lg:sticky lg:top-6">
+      <div className="flex flex-col gap-4 lg:sticky lg:top-6 lg:gap-6">
         {/* Search */}
         <div className="rounded-2xl p-4 border border-gray-100 shadow-sm bg-[var(--bg-primary)]">
           <h3 className="font-bold mb-3 text-sm text-[var(--text-primary)]">
@@ -88,7 +96,8 @@ function Sidebar({
             ) : (
               searchResults.map((essay) => {
                 const img = essay.image_url || essay.image;
-                const titleText = essay.title || essay.name || "مقال بدون عنوان";
+                const titleText =
+                  essay.title || essay.name || "مقال بدون عنوان";
                 return (
                   <Link
                     key={essay.id}
@@ -96,8 +105,9 @@ function Sidebar({
                     className="group flex items-center gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors"
                   >
                     <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                      {img && typeof img === "string" && !img.includes("[object") ? (
-                        // eslint-disable-next-line @next/next/no-img-element
+                      {img &&
+                      typeof img === "string" &&
+                      !img.includes("[object") ? (
                         <img
                           src={img}
                           alt={titleText}
@@ -168,7 +178,9 @@ function RelatedArticles({
   return (
     <section className="mt-12 pt-8 border-t border-[var(--border-color)]">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-[var(--text-primary)]">مقالات مشابهة</h2>
+        <h2 className="text-xl font-bold text-[var(--text-primary)]">
+          مقالات مشابهة
+        </h2>
       </div>
 
       {/* Card */}
@@ -179,7 +191,7 @@ function RelatedArticles({
         exit={{ opacity: 0, x: -30 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="group flex flex-col-reverse md:flex-row-reverse items-center gap-4 border border-[var(--border-color)] rounded-2xl p-4 hover:border-primary/30 hover:shadow-md transition-all bg-[var(--bg-primary)]">
+        <div className="group flex flex-col gap-4 md:flex-row-reverse md:items-center border border-[var(--border-color)] rounded-2xl p-3 md:p-4 hover:border-primary/30 hover:shadow-md transition-all bg-[var(--bg-primary)]">
           {/* Content — right side */}
           <div className="flex-1 w-full md:min-w-0 text-right flex flex-col gap-2">
             <h3 className="font-bold text-[var(--text-primary)] group-hover:text-primary transition-colors mb-2 line-clamp-2 leading-snug text-lg">
@@ -197,9 +209,8 @@ function RelatedArticles({
           </div>
 
           {/* Thumbnail — left side */}
-          <div className="relative w-full md:w-[360px] h-[172px] flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+          <div className="relative w-full md:w-[360px] h-[180px] md:h-[172px] flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
             {img && typeof img === "string" && !img.includes("[object") ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <Link href={`/essays/${essay.id}`} className="w-full h-full">
                 <img
                   src={img}
@@ -345,27 +356,38 @@ export default function EssayDetailClient() {
 
   const mainImg = essay.image_url || essay.image;
   const mainTitle = essay.title || essay.name || "مقال بدون عنوان";
+  const articleText = cleanAndFormatBlogContent(
+    essay.content || essay.description || "",
+  );
+  const articleSummary = stripHtml(essay.description || essay.content || "");
+  const readingMinutes = Math.max(
+    1,
+    Math.round(
+      stripHtml(articleText).split(/\s+/).filter(Boolean).length / 200,
+    ),
+  );
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="py-6 pl-4 max-w-7xl px-4 w-11/12 mx-auto bg-glass rounded-3xl"
+      className="w-full max-w-7xl mx-auto bg-glass rounded-3xl px-3 py-4 sm:px-4 md:py-6 md:pl-4 md:w-11/12"
     >
       {/* زر الرجوع */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-primary transition-colors mb-6 group px-4"
+      <Link
+        href="/essays"
+        className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-primary transition-colors mb-6 group px-4"
       >
         <FaArrowRight className="group-hover:-translate-x-1 transition-transform" />
         <span>العودة للمقالات</span>
-      </button>
+      </Link>
 
       {/* ─── Hero Image — full width ─── */}
-      <div className="relative w-full h-auto overflow-hidden mb-8 bg-gray-100 rounded-2xl max-h-[420px] flex items-center justify-center">
-        {mainImg && typeof mainImg === "string" && !mainImg.includes("[object") ? (
-          // eslint-disable-next-line @next/next/no-img-element
+      <div className="relative w-full h-auto overflow-hidden mb-5 md:mb-8 bg-gray-100 rounded-xl md:rounded-2xl max-h-[260px] sm:max-h-[320px] md:max-h-[420px] flex items-center justify-center">
+        {mainImg &&
+        typeof mainImg === "string" &&
+        !mainImg.includes("[object") ? (
           <img
             src={mainImg}
             alt={mainTitle}
@@ -379,18 +401,45 @@ export default function EssayDetailClient() {
       </div>
 
       {/* ─── Content + Sidebar side by side ─── */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start px-4">
+      <div className="flex flex-col gap-6 px-0 md:px-4 lg:flex-row lg:items-start lg:gap-8">
         {/* ── Main Content ── */}
         <article className="flex-1 min-w-0 font">
           <div className="mb-5 border-b-2 border-primary pb-4">
             <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] leading-snug">
               {mainTitle}
             </h1>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--text-secondary)]">
+              {essay.category && (
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-primary font-medium">
+                  {essay.category}
+                </span>
+              )}
+
+              {essay.created_at && (
+                <span className="flex items-center gap-1.5">
+                  <span>📅</span>
+                  <span>{formatArticleDate(essay.created_at)}</span>
+                </span>
+              )}
+
+              <span className="flex items-center gap-1.5">
+                <span>⏱</span>
+                <span>{readingMinutes} د</span>
+              </span>
+            </div>
           </div>
+
+          {articleSummary && (
+            <div className="mb-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-secondary)]/60 p-4 text-sm leading-relaxed text-[var(--text-secondary)] md:text-base">
+              {articleSummary}
+            </div>
+          )}
+
           <div
-            className="text-lg leading-relaxed prose prose-lg max-w-none text-[var(--text-primary)]"
+            className="text-base leading-relaxed prose prose-lg max-w-none text-[var(--text-primary)] md:text-lg"
             dangerouslySetInnerHTML={{
-              __html: cleanAndFormatBlogContent(essay.content || essay.description || ""),
+              __html: articleText,
             }}
           />
         </article>

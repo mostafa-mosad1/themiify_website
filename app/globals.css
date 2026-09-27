@@ -6,11 +6,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Cairo', sans-serif !important;
+  font-family:
+    "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
 body {
-  font-family: var(--font-cairo);
+  font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #e6e6e64d;
   display: flex;
   justify-content: center;
@@ -99,10 +100,10 @@ h6 {
   color: var(--primary-color) !important;
   font-weight: 700 !important;
   span,
-  b{
-      color: var(--primary-color) !important;
-      font-weight: 700 !important;
-    }
+  b {
+    color: var(--primary-color) !important;
+    font-weight: 700 !important;
+  }
 }
 
 *::-webkit-scrollbar {
@@ -126,9 +127,7 @@ html.dark *::-webkit-scrollbar-thumb {
 .thumbs-scroll::-webkit-scrollbar-thumb {
   width: 2px;
   height: 2px;
-  
 }
-
 
 /* 
 *::-webkit-scrollbar {
@@ -192,7 +191,6 @@ select option:not(:last-child) {
   padding-block: 8px !important;
 }
 
-
 input[type="text"]::placeholder,
 input[type="email"]::placeholder,
 input[type="password"]::placeholder,
@@ -220,10 +218,10 @@ textarea::placeholder {
     0px -2px 0px 2px #ffffff,
     0px 0px 0px 2px #0e132c; */
 
-    box-shadow:
-  inset 0 2px 4px rgba(255, 255, 255, 0.6),
-  inset 0 -2px 4px rgba(0, 0, 0, 0.15),
-  0 4px 12px rgba(74, 127, 168, 0.4);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(74, 127, 168, 0.4);
   box-shadow: inset 0px 0 6px 3px #ffffff54;
   color: white;
 }
@@ -264,10 +262,10 @@ textarea::placeholder {
 /* for btn gradient */
 .gradient-primary {
   background: var(--primary-color);
-   border-width: 0px 2px;
-    border-color:  var(--primary-color);
-    position: relative;
-    backdrop-filter: blur(100px);
+  border-width: 0px 2px;
+  border-color: var(--primary-color);
+  position: relative;
+  backdrop-filter: blur(100px);
   /* box-shadow:
     inset 0px 1.5px 0 0 #fff,
     inset -1px -1.5px 0 0px #f26b21;
@@ -282,24 +280,26 @@ textarea::placeholder {
   } */
 }
 
-
-
 .gradient-primary::before {
-     content: "";
-    border-radius: inherit;
-    background: radial-gradient(ellipse 58% 135% at 50% 50%, var(--primary-color) 63%, transparent 100%), radial-gradient(ellipse 100% 80% at 50% 50%, #fff 80%, transparent 70%);
-    pointer-events: none;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    transform: translate(-50%, -50%);
-    top: 50%;
-    backdrop-filter: blur(100px);
-    left: 50%;
-    z-index: -1;
+  content: "";
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse 58% 135% at 50% 50%,
+      var(--primary-color) 63%,
+      transparent 100%
+    ),
+    radial-gradient(ellipse 100% 80% at 50% 50%, #fff 80%, transparent 70%);
+  pointer-events: none;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  backdrop-filter: blur(100px);
+  left: 50%;
+  z-index: -1;
 }
-
-
 
 /* .gradient-secondary {
 
@@ -389,7 +389,6 @@ textarea::placeholder {
   backdrop-filter: blur(8px);
 } */
 
-
 /* .gradient-secondary{
   border-color: #0a0f1f;  
   border-width:0 2px;
@@ -410,30 +409,33 @@ textarea::placeholder {
   pointer-events: none;
 } */
 
-.gradient-secondary{
-    background-color: #0E132C;
-    border-width: 0px ;
-    border-color: #0a0f1f;
-    position: relative;
-    backdrop-filter: blur(100px);
-
+.gradient-secondary {
+  background-color: #0e132c;
+  border-width: 0px;
+  border-color: #0a0f1f;
+  position: relative;
+  backdrop-filter: blur(100px);
 }
 
-
-
 .gradient-secondary::before {
-     content: "";
-    border-radius: inherit;
-    background: radial-gradient(ellipse 58% 135% at 50% 50%, var(--secondary-color) 63%, transparent 100%), radial-gradient(ellipse 100% 80% at 50% 50%, #fff 80%, transparent 70%);
-    pointer-events: none;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    transform: translate(-50%, -50%);
-    top: 50%;
-    backdrop-filter: blur(100px);
-    left: 50%;
-    z-index: -1;
+  content: "";
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse 58% 135% at 50% 50%,
+      var(--secondary-color) 63%,
+      transparent 100%
+    ),
+    radial-gradient(ellipse 100% 80% at 50% 50%, #fff 80%, transparent 70%);
+  pointer-events: none;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  backdrop-filter: blur(100px);
+  left: 50%;
+  z-index: -1;
 }
 
 .dark .gradient-secondary {
@@ -469,10 +471,12 @@ textarea::placeholder {
     rgb(255, 255, 255) 0%,
     rgba(255, 255, 255, 0.726) 40%
   );
-/*   border: 1px solid rgba(255,255,255, 0.75); */
+  /*   border: 1px solid rgba(255,255,255, 0.75); */
   border-radius: 14px;
-  box-shadow: inset 0 0px 2px #0003, inset 1px 1px #ffffff4d, inset -1px -1px #ffffff1a;
-
+  box-shadow:
+    inset 0 0px 2px #0003,
+    inset 1px 1px #ffffff4d,
+    inset -1px -1px #ffffff1a;
 }
 
 html.dark .bg-glass {
@@ -584,29 +588,27 @@ html.dark .bg-glass {
 
 /* resSideBar */
 @media (max-width: 767px) {
- *::-webkit-scrollbar {
+  *::-webkit-scrollbar {
     display: none;
   }
-  
+
   *::-webkit-scrollbar-thumb {
     display: none;
   }
-  
+
   /* إظهار سكرول sectionList فقط */
-  
-  
+
   .sectionList::-webkit-scrollbar {
     display: block !important;
     height: 2px !important;
     background: transparent !important;
   }
-  
+
   .sectionList::-webkit-scrollbar-thumb {
     display: block !important;
     background-color: var(--primary-color) !important;
     border-radius: 20px !important;
   }
-  
 
   .resSideBar {
     transition: all 0.5s ease-in-out;
@@ -630,35 +632,30 @@ html.dark .bg-glass {
 }
 
 @media (min-width: 1600px) {
-  .container{
+  .container {
     max-width: 90%;
   }
-
-  
 }
 
 @media (min-width: 1600px) {
   .themes-grid {
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
   }
 }
-  
-
 
 .theme-content ul {
   list-style: circle;
   margin-right: 24px;
-
 }
-.theme-content ol{
+.theme-content ol {
   list-style: decimal;
   margin-right: 24px;
 }
 .theme-content h1,
 .theme-content h2,
-  .theme-content h3,
-  .theme-content h4,
-  .theme-content h5{
+.theme-content h3,
+.theme-content h4,
+.theme-content h5 {
   padding-top: 20px;
 }
 
@@ -668,8 +665,8 @@ html.dark .bg-glass {
   overflow-y: scroll;
 }
 
-.header-btn span{
+.header-btn span {
   @media (max-width: 767px) {
-     font-size: 12px;
+    font-size: 12px;
   }
 }
