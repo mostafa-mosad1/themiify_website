@@ -1,14 +1,11 @@
 // app/(client)/themes/[id]/page.tsx
 import React from "react";
 import Button from "@/components/ui/Button";
-import { FaArrowRight, FaCartShopping, FaStar } from "react-icons/fa6";
-import { FaStarHalfAlt, FaRegStar, FaYoutube } from "react-icons/fa";
+import { FaArrowRight, FaStar } from "react-icons/fa6";
 import Link from "next/link";
-import ThemeMediaSlider from "./ThemeMediaSlider";
 import ThemeGrid from "./Themegrid";
 import ThemeCard from "@/components/ui/ThemeCard";
-import { BsEye } from "react-icons/bs";
-import { fetchThemeById, ITheme } from "@/lib/api/themes";
+import { fetchThemeById } from "@/lib/api/themes";
 
 function parseThemePagesMap(raw: unknown): Record<string, string> {
   if (!raw) return {};
@@ -111,49 +108,12 @@ function parsePageContent(slug: string, rawContent: unknown) {
   };
 }
 
-// ─── Platform logo map ────────────────────────────────────────────────────────
-const PLATFORM_LOGOS: Record<string, string> = {
-  shopify: "https://cdn.worldvectorlogo.com/logos/shopify.svg",
-  woocommerce: "https://cdn.worldvectorlogo.com/logos/woocommerce.svg",
-  bigcommerce: "https://cdn.worldvectorlogo.com/logos/bigcommerce-1.svg",
-  salla: "https://cdn.salla.network/images/logo/logo.svg",
-  zid: "/images/logo_zid.svg",
-  wordpress: "/logos/wordpress.svg",
-};
-
-// ─── Star rating helper ───────────────────────────────────────────────────────
-function StarRating({
-  rating,
-  reviewsCount,
-}: {
-  rating: number;
-  reviewsCount?: number;
-}) {
-  const fullStars = Math.floor(rating);
-  const hasHalf = rating % 1 >= 0.5;
-
-  return (
-    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full">
-      <div className="flex items-center gap-0.5">
-        {Array.from({ length: 5 }).map((_, i) => {
-          if (i < fullStars)
-            return <FaStar key={i} size={13} className="text-[#FFC62A]" />;
-          if (i === fullStars && hasHalf)
-            return (
-              <FaStarHalfAlt key={i} size={13} className="text-[#FFC62A]" />
-            );
-          return (
-            <FaRegStar key={i} size={13} className="text-[var(--text-tertiary)]" />
-          );
-        })}
-      </div>
-      {(reviewsCount ?? 0) > 0 && (
-        <span className="text-[var(--text-tertiary)] font-normal text-xs">
-          ( {reviewsCount}+ تقييم )
-        </span>
-      )}
-    </div>
-  );
+function getYoutubeId(url?: string | null) {
+  if (!url) return "";
+  if (url.includes("watch?v=")) return url.split("watch?v=")[1].split("&")[0];
+  if (url.includes("youtu.be/")) return url.split("youtu.be/")[1].split("?")[0];
+  if (url.includes("embed/")) return url.split("embed/")[1].split("?")[0];
+  return "";
 }
 
 // ─── Page component ───────────────────────────────────────────────────────────
@@ -198,11 +158,7 @@ const ThemeDetailPage = async ({
     }))
     .filter((page: any) => page.sections.length > 0);
 
-  const rating = Number(theme.rating) || 5;
-  const ratingCount = theme.rating_count || 0;
   const platformName = theme.platform?.name || theme.platform_name || "Salla";
-  const platformKey = platformName.toLowerCase();
-  const platformLogo = PLATFORM_LOGOS[platformKey] || PLATFORM_LOGOS.salla;
 
   const rawImages = (theme as any).images;
   const mediaUrls: string[] = [];
@@ -250,102 +206,72 @@ const ThemeDetailPage = async ({
         </Link>
       </div>
 
-      {/* ── Main Hero Card ──────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-[28px] border border-white/60 dark:border-white/10 bg-glass shadow-xl p-6 md:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Right Column: Theme Info */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              {/* Badges row */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--primary-color)]/10 text-[var(--primary-color)] border border-[var(--primary-color)]/20">
-                  {theme.category?.name || theme.category_name || "ثيم مميز"}
-                </span>
+      {/* ── Theme Banner ───────────────────────────────────────────────── */}
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-5 rounded-3xl overflow-hidden">
+        <img
+          src={theme.banner_url || mediaUrls[0] || "/images/placeholder.svg"}
+          alt={theme.name}
+          className="w-full h-auto max-h-[420px] object-cover rounded-2xl"
+        />
+      </div>
 
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[var(--text-secondary)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={platformLogo}
-                    alt={platformName}
-                    className="w-4 h-4 object-contain"
-                  />
-                  <span>{platformName}</span>
+      {theme.video_link || theme.playlist_link ? (
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl p-4 md:p-5">
+          <div className="flex flex-col md:flex-row items-center gap-5">
+            <a
+              href={theme.video_link || theme.playlist_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative w-full md:w-[48%] aspect-video rounded-2xl overflow-hidden bg-black group"
+            >
+              <img
+                src={
+                  getYoutubeId(theme.video_link || theme.playlist_link)
+                    ? `https://i.ytimg.com/vi/${getYoutubeId(theme.video_link || theme.playlist_link)}/hqdefault.jpg`
+                    : theme.banner_url || "/images/placeholder.svg"
+                }
+                alt={`فيديو تعريفي عن ${theme.name}`}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/25 transition-colors">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-xl text-2xl pl-1">
+                  ▶
                 </span>
-
-                <StarRating rating={rating} reviewsCount={ratingCount} />
+              </span>
+            </a>
+            <div className="w-full md:w-[52%] text-right space-y-3">
+              <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">
+                فيديو تعريفي لثيم {theme.name}
+              </h2>
+              <p className="text-sm md:text-base leading-7 text-[var(--text-secondary)]">
+                {theme.description ||
+                  `مع ثيم ${theme.name} تقدر تطلق متجرك بشكل احترافي في وقت قياسي. تصميم مرن، سرعة تحميل عالية، وتجربة مستخدم محسوبة خطوة بخطوة.`}
+              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <span className="text-[var(--text-primary)] font-semibold">
+                  رقم #{theme.platform_rank || 1} على منصة {platformName}
+                </span>
+                <span className="flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
+                  <span>({theme.rating_count || 0} تقييم)</span>
+                  <span className="flex items-center text-[#FFC62A]" aria-label={`تقييم ${theme.rating || 0} من 5`}>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <FaStar key={index} size={13} className={index < Math.round(Number(theme.rating) || 0) ? "" : "opacity-25"} />
+                    ))}
+                  </span>
+                </span>
               </div>
-
-              {/* Theme Name */}
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tight">
-                {theme.name}
-              </h1>
-
-              {/* Description */}
-              {theme.description && (
-                <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed line-clamp-4">
-                  {theme.description}
-                </p>
-              )}
-
-              {/* Pricing */}
-              {theme.price && (
-                <div className="flex items-baseline gap-2 pt-2">
-                  <span className="text-3xl md:text-4xl font-black text-primary">
-                    {theme.price}
-                  </span>
-                  <span className="text-sm font-semibold text-[var(--text-tertiary)]">
-                    ريال سعودي
-                  </span>
-                </div>
-              )}
+              <a
+                href={theme.video_link || theme.playlist_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex rounded-full bg-orange-500 px-5 py-2.5 font-bold text-white hover:bg-orange-600 transition-colors"
+              >
+                مشاهدة الفيديو الآن
+              </a>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-black/5 dark:border-white/5">
-              {theme.buy_link && (
-                <Button
-                  url={theme.buy_link}
-                  openInNewTab
-                  variant="primary"
-                  className="px-6 py-3 text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20"
-                >
-                  <FaCartShopping size={14} />
-                  <span>شراء الثيم الآن</span>
-                </Button>
-              )}
-
-              {theme.inspect_link && (
-                <Button
-                  url={theme.inspect_link}
-                  openInNewTab
-                  variant="secondary"
-                  className="px-6 py-3 text-sm font-semibold flex items-center gap-2 bg-white/60 dark:bg-white/10 hover:bg-white/90 text-black dark:text-white border border-black/10 dark:border-white/10"
-                >
-                  <BsEye size={16} />
-                  <span>معاينة حية</span>
-                </Button>
-              )}
-
-              {theme.video_link && (
-                <a
-                  href={theme.video_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 hover:bg-red-100 transition-colors"
-                >
-                  <FaYoutube size={16} />
-                  <span>شرح الفيديو</span>
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Left Column: Media Gallery Slider */}
-          <div className="lg:col-span-5 w-full">
-            <ThemeMediaSlider theme={theme} mediaUrls={mediaUrls} themeName={theme.name} />
           </div>
         </div>
-      </div>
+      ) : null}
 
       {/* ── Theme Grid Sections / Pages Content ─────────────────────────── */}
       {structuredPages.length > 0 && (

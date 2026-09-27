@@ -124,7 +124,7 @@ function toSlug(value: string) {
 }
 
 function normalizePage(raw: any, fallbackId: string): Page {
-  const sections = Array.isArray(raw?.sections)
+  let sections = Array.isArray(raw?.sections)
     ? raw.sections.map((section: any, index: number) => ({
         id: Number(section?.id) || index + 1,
         title: typeof section?.title === "string" ? section.title : "",
@@ -138,11 +138,27 @@ function normalizePage(raw: any, fallbackId: string): Page {
       }))
     : [];
 
+  if (sections.length === 0 && typeof raw?.content === "string" && raw.content.trim()) {
+    sections = [{
+      id: 1,
+      title: raw.title || "محتوى",
+      content: raw.content,
+      videoLink: "",
+    }];
+  }
+
   return {
-    id: typeof raw?.id === "string" && raw.id.trim() ? raw.id : fallbackId,
+    id:
+      typeof raw?.id === "string" && raw.id.trim()
+        ? raw.id
+        : typeof raw?.slug === "string" && raw.slug.trim()
+          ? raw.slug
+          : fallbackId,
     name:
-      typeof raw?.name === "string" && raw.name.trim()
-        ? raw.name
+      typeof raw?.title === "string" && raw.title.trim()
+        ? raw.title
+        : typeof raw?.name === "string" && raw.name.trim()
+          ? raw.name
         : fallbackId.charAt(0).toUpperCase() + fallbackId.slice(1),
     sections,
   };
@@ -233,7 +249,7 @@ function buildPagesPayload(pages: { [pageId: string]: Page }): string {
       : "";
 
     return {
-      title: slug,
+      title: page.name,
       slug: slug,
       content: content,
       is_default: index === 0, // First page is default
@@ -245,18 +261,10 @@ function buildPagesPayload(pages: { [pageId: string]: Page }): string {
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  let token =
-    localStorage.getItem("authToken") ||
-    localStorage.getItem("bearer_token") ||
-    localStorage.getItem("adminToken") ||
-    null;
-  if (!token) {
-    const match = document.cookie.match(
-      /(?:^|;\s*)(?:authToken|adminToken|bearer_token)=([^;]+)/,
-    );
-    if (match) token = decodeURIComponent(match[1]);
-  }
-  return token;
+  const match = document.cookie.match(
+    /(?:^|;\s*)(?:authToken|adminToken|bearer_token)=([^;]+)/,
+  );
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
 // ─────────────────────────────────────────────
@@ -291,10 +299,7 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
     const init = async () => {
       try {
         const token = getAuthToken();
-        const isAdmin =
-          typeof window !== "undefined" &&
-          localStorage.getItem("isAdmin") === "true";
-        if (token || isAdmin) {
+        if (token) {
           setAdminToken(token || "admin");
           setUserId("admin");
         } else {
@@ -359,9 +364,11 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
               playlistLink: item.playlist_link || "",
             });
 
-            console.log("Raw pages from API:", item.pages);
+            console.log("Raw pages from API:", item.theme_pages || item.pages);
             console.log("Raw content from API:", item.content);
-            const parsedPageData = parsePagesMap(item.pages ?? item.content);
+            const parsedPageData = parsePagesMap(
+              item.theme_pages ?? item.pages ?? item.content,
+            );
             console.log("Parsed page data:", parsedPageData);
             setPageData(parsedPageData);
             const firstPageId = Object.keys(parsedPageData)[0] || "";
