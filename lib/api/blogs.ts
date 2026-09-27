@@ -76,21 +76,40 @@ function parseCollectionPayload(
     return { items: [] };
   }
 
-  const dataValue = payload.data;
-  if (Array.isArray(dataValue)) {
-    const pagination: IAdminPagination = {
-      current_page: toNumberValue(payload.current_page, pageFallback),
-      last_page: toNumberValue(payload.last_page, 1),
-      per_page: toNumberValue(payload.per_page, perPageFallback),
-      total: toNumberValue(payload.total, dataValue.length),
-      from: typeof payload.from === "number" ? payload.from : null,
-      to: typeof payload.to === "number" ? payload.to : null,
-    };
-    return { items: dataValue, pagination };
-  }
+  const rootData = isRecord(payload.data) ? payload.data : payload;
+  const directArray = Array.isArray(payload.data)
+    ? payload.data
+    : Array.isArray(rootData?.data)
+      ? rootData.data
+      : Array.isArray(rootData?.blogs)
+        ? rootData.blogs
+        : Array.isArray(rootData?.items)
+          ? rootData.items
+          : [];
 
-  if (Array.isArray(payload.blogs)) {
-    return { items: payload.blogs };
+  if (directArray.length > 0 || rootData === payload) {
+    const pagination: IAdminPagination = {
+      current_page: toNumberValue(
+        rootData.current_page ?? payload.current_page,
+        pageFallback,
+      ),
+      last_page: toNumberValue(rootData.last_page ?? payload.last_page, 1),
+      per_page: toNumberValue(
+        rootData.per_page ?? payload.per_page,
+        perPageFallback,
+      ),
+      total: toNumberValue(rootData.total ?? payload.total, directArray.length),
+      from:
+        typeof (rootData.from ?? payload.from) === "number"
+          ? Number(rootData.from ?? payload.from)
+          : null,
+      to:
+        typeof (rootData.to ?? payload.to) === "number"
+          ? Number(rootData.to ?? payload.to)
+          : null,
+    };
+
+    return { items: directArray, pagination };
   }
 
   return { items: [] };
