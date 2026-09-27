@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/(client)/support/SupportPageUI.tsx
 "use client";
 
@@ -40,7 +41,10 @@ import {
   fetchSupportClientCategories,
   ISupportCategory,
 } from "@/lib/api/support-categories";
-import { fetchSupportChannels, ISupportChannel } from "@/lib/api/support-channels";
+import {
+  fetchSupportChannels,
+  ISupportChannel,
+} from "@/lib/api/support-channels";
 
 const FEEDBACK_COOLDOWN_MINUTES = 10;
 
@@ -109,49 +113,129 @@ function detectChannelPlatform(c: ISupportChannel): string {
   const nameLower = (c.name || "").toLowerCase();
   const typeLower = (c.type || "").toLowerCase();
 
-  if (iconStr.includes("whatsapp") || typeLower.includes("whatsapp") || nameLower.includes("واتساب") || nameLower.includes("واتس") || typeLower === "واتساب") {
+  if (
+    iconStr.includes("whatsapp") ||
+    typeLower.includes("whatsapp") ||
+    nameLower.includes("واتساب") ||
+    nameLower.includes("واتس") ||
+    typeLower === "واتساب"
+  ) {
     return "whatsapp";
   }
-  if (iconStr.includes("telegram") || typeLower.includes("telegram") || nameLower.includes("تليجرام") || nameLower.includes("تيليجرام") || nameLower.includes("تلغرام") || typeLower === "تليجرام") {
+  if (
+    iconStr.includes("telegram") ||
+    typeLower.includes("telegram") ||
+    nameLower.includes("تليجرام") ||
+    nameLower.includes("تيليجرام") ||
+    nameLower.includes("تلغرام") ||
+    typeLower === "تليجرام"
+  ) {
     return "telegram";
   }
-  if (iconStr.includes("snapchat") || typeLower.includes("snapchat") || nameLower.includes("سناب") || typeLower === "سناب شات") {
+  if (
+    iconStr.includes("snapchat") ||
+    typeLower.includes("snapchat") ||
+    nameLower.includes("سناب") ||
+    typeLower === "سناب شات"
+  ) {
     return "snapchat";
   }
-  if (iconStr.includes("email") || iconStr.includes("envelope") || iconStr.includes("gmail") || typeLower.includes("email") || nameLower.includes("بريد") || nameLower.includes("ايميل") || nameLower.includes("إيميل") || typeLower === "بريد إلكتروني") {
+  if (
+    iconStr.includes("email") ||
+    iconStr.includes("envelope") ||
+    iconStr.includes("gmail") ||
+    typeLower.includes("email") ||
+    nameLower.includes("بريد") ||
+    nameLower.includes("ايميل") ||
+    nameLower.includes("إيميل") ||
+    typeLower === "بريد إلكتروني"
+  ) {
     return "email";
   }
-  if (iconStr.includes("phone") || typeLower.includes("phone") || nameLower.includes("هاتف") || nameLower.includes("اتصال") || nameLower.includes("جوال") || typeLower === "هاتف") {
+  if (
+    iconStr.includes("phone") ||
+    typeLower.includes("phone") ||
+    nameLower.includes("هاتف") ||
+    nameLower.includes("اتصال") ||
+    nameLower.includes("جوال") ||
+    typeLower === "هاتف"
+  ) {
     return "phone";
   }
-  if (iconStr.includes("instagram") || typeLower.includes("instagram") || nameLower.includes("انستغرام") || nameLower.includes("انستقرام")) {
+  if (
+    iconStr.includes("instagram") ||
+    typeLower.includes("instagram") ||
+    nameLower.includes("انستغرام") ||
+    nameLower.includes("انستقرام")
+  ) {
     return "instagram";
   }
-  if (iconStr.includes("tiktok") || typeLower.includes("tiktok") || nameLower.includes("تيك توك")) {
+  if (
+    iconStr.includes("tiktok") ||
+    typeLower.includes("tiktok") ||
+    nameLower.includes("تيك توك")
+  ) {
     return "tiktok";
   }
-  if (iconStr.includes("twitter") || iconStr.includes("x-twitter") || typeLower.includes("twitter") || nameLower.includes("تويتر") || nameLower.includes("إكس") || nameLower.includes("اكس")) {
+  if (
+    iconStr.includes("twitter") ||
+    iconStr.includes("x-twitter") ||
+    typeLower.includes("twitter") ||
+    nameLower.includes("تويتر") ||
+    nameLower.includes("إكس") ||
+    nameLower.includes("اكس")
+  ) {
     return "twitter";
   }
-  if (iconStr.includes("facebook") || typeLower.includes("facebook") || nameLower.includes("فيسبوك") || nameLower.includes("فيس بوك")) {
+  if (
+    iconStr.includes("facebook") ||
+    typeLower.includes("facebook") ||
+    nameLower.includes("فيسبوك") ||
+    nameLower.includes("فيس بوك")
+  ) {
     return "facebook";
   }
-  if (iconStr.includes("youtube") || typeLower.includes("youtube") || nameLower.includes("يوتيوب")) {
+  if (
+    iconStr.includes("youtube") ||
+    typeLower.includes("youtube") ||
+    nameLower.includes("يوتيوب")
+  ) {
     return "youtube";
   }
-  if (iconStr.includes("linkedin") || typeLower.includes("linkedin") || nameLower.includes("لينكد")) {
+  if (
+    iconStr.includes("linkedin") ||
+    typeLower.includes("linkedin") ||
+    nameLower.includes("لينكد")
+  ) {
     return "linkedin";
   }
-  if (iconStr.includes("discord") || typeLower.includes("discord") || nameLower.includes("ديسكورد")) {
+  if (
+    iconStr.includes("discord") ||
+    typeLower.includes("discord") ||
+    nameLower.includes("ديسكورد")
+  ) {
     return "discord";
   }
-  if (iconStr.includes("threads") || typeLower.includes("threads") || nameLower.includes("ثريدز")) {
+  if (
+    iconStr.includes("threads") ||
+    typeLower.includes("threads") ||
+    nameLower.includes("ثريدز")
+  ) {
     return "threads";
   }
-  if (iconStr.includes("github") || typeLower.includes("github") || nameLower.includes("جيت")) {
+  if (
+    iconStr.includes("github") ||
+    typeLower.includes("github") ||
+    nameLower.includes("جيت")
+  ) {
     return "github";
   }
-  if (iconStr.includes("globe") || iconStr.includes("website") || typeLower.includes("website") || nameLower.includes("موقع")) {
+  if (
+    iconStr.includes("globe") ||
+    iconStr.includes("website") ||
+    typeLower.includes("website") ||
+    nameLower.includes("موقع")
+  ) {
     return "website";
   }
   return "website";
@@ -235,7 +319,8 @@ function buildChannelUrl(platform: string, val: string): string {
 
   if (platform === "twitter") {
     if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
-    if (raw.startsWith("x.com/") || raw.startsWith("twitter.com/")) return `https://${raw}`;
+    if (raw.startsWith("x.com/") || raw.startsWith("twitter.com/"))
+      return `https://${raw}`;
     return `https://x.com/${raw.replace(/^@/, "")}`;
   }
 
@@ -291,9 +376,13 @@ export default function SupportPageUI() {
 
   const [questionsData, setQuestionsData] = useState<ISupportQuestion[]>([]);
   const [categoriesData, setCategoriesData] = useState<ISupportCategory[]>([]);
-  const [socialLinksData, setSocialLinksData] = useState<FormattedSocialChannel[]>([]);
+  const [socialLinksData, setSocialLinksData] = useState<
+    FormattedSocialChannel[]
+  >([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">("all");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">(
+    "all",
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -304,7 +393,8 @@ export default function SupportPageUI() {
           fetchSupportChannels(),
         ]);
 
-        let loadedQuestions: ISupportQuestion[] = questionsRes.questions || [];
+        const loadedQuestions: ISupportQuestion[] =
+          questionsRes.questions || [];
         const loadedCategories: ISupportCategory[] = categoriesRes || [];
 
         // في حال كانت قائمة الأسئلة فارغة لكن الفئات تحتوي على مصفوفة questions
@@ -314,7 +404,8 @@ export default function SupportPageUI() {
               for (const q of cat.questions) {
                 const norm = normalizeSupportQuestion({
                   ...(q as Record<string, unknown>),
-                  category_id: (q as Record<string, unknown>).category_id || cat.id,
+                  category_id:
+                    (q as Record<string, unknown>).category_id || cat.id,
                   category_name: cat.name,
                   category: { id: cat.id, name: cat.name },
                 });
@@ -347,7 +438,9 @@ export default function SupportPageUI() {
         setCategoriesData(finalCategories);
 
         if (channelsRes.channels && channelsRes.channels.length > 0) {
-          const active = channelsRes.channels.filter((c) => c.is_active !== false);
+          const active = channelsRes.channels.filter(
+            (c) => c.is_active !== false,
+          );
           if (active.length > 0) {
             const formatted: FormattedSocialChannel[] = active.map((c) => {
               const platform = detectChannelPlatform(c);
@@ -407,9 +500,12 @@ export default function SupportPageUI() {
   const renderSocialIcon = (link: FormattedSocialChannel) => {
     if (link.customIconUrl) {
       return (
-        <img
+        <Image
           src={link.customIconUrl}
           alt={link.name}
+          width={22}
+          height={22}
+          unoptimized
           className="size-[22px] object-contain rounded-full"
         />
       );
@@ -494,7 +590,10 @@ export default function SupportPageUI() {
               <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-5"></div>
               <div className="flex gap-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div
+                    key={i}
+                    className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"
+                  ></div>
                 ))}
               </div>
             </div>
@@ -530,26 +629,43 @@ export default function SupportPageUI() {
       )}
       <div className="flex flex-col gap-4 w-11/12 mx-auto">
         {/* Header */}
-        <div className="head bg-glass px-10 py-6 rounded-2xl shadow-sm flex items-center justify-between relative mt-16">
+        <div className="head bg-glass px-10 py-6 rounded-2xl shadow-sm flex items-center justify-between relative md:mt-16">
           <div className="content w-3/5 md:w-3/4">
-            <h1 className="text-base md:text-2xl font-bold mb-4">هل تحتاج إلى مساعدة؟</h1>
+            <h1 className="text-base md:text-2xl font-bold mb-4">
+              هل تحتاج إلى مساعدة؟
+            </h1>
             <p className="text-sm md:text-base text-[var(--text-secondary)]">
-              إذا كان لديك أي استفسار أو واجهت مشكلة أثناء استخدام النظام، فريق الدعم لدينا جاهز لمساعدتك
+              إذا كان لديك أي استفسار أو واجهت مشكلة أثناء استخدام النظام، فريق
+              الدعم لدينا جاهز لمساعدتك
             </p>
           </div>
           <div className="image absolute bottom-0 left-1 md:left-10 w-32 h-36">
-            <Image src={support} alt="support" className="w-full h-full object-contain" />
+            <Image
+              src={support}
+              alt="support"
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
 
         <div className="formBaner relative rounded-2xl overflow-hidden">
           <div className="imageBG h-full">
-            <Image src={formBanner} alt="support" className="w-full h-full object-contain hidden lg:block" />
-            <Image src={formBannerRes} alt="support" className="w-full h-full object-contain block lg:hidden" />
+            <Image
+              src={formBanner}
+              alt="support"
+              className="w-full h-full object-contain hidden lg:block"
+            />
+            <Image
+              src={formBannerRes}
+              alt="support"
+              className="w-full h-full object-contain block lg:hidden"
+            />
           </div>
 
           <div className="containt absolute top-1/2 right-0 transform -translate-y-1/2 mx-10 flex flex-col items-start xl:gap-4 lg:gap-2 gap-[4px]">
-            <h1 className="text-base md:text-2xl font-bold text-white">قيّـــم تجــربتك معنـــا</h1>
+            <h1 className="text-base md:text-2xl font-bold text-white">
+              قيّـــم تجــربتك معنـــا
+            </h1>
             <p className="text-sm md:text-xl text-white font-normal ">
               هل استخدمت خدمتنا؟ رأيك يساعدنا نحسّن خدماتنا ونقدم تجربة أفضل.
             </p>
@@ -566,7 +682,11 @@ export default function SupportPageUI() {
                 شكرا لتقيمك
               </Button>
             ) : (
-              <Button className="mt-4 !bg-white !text-black w-fit" url="/form" icon={<FaStar size={20} color="#FFB900" />}>
+              <Button
+                className="mt-4 !bg-white !text-black w-fit"
+                url="/form"
+                icon={<FaStar size={20} color="#FFB900" />}
+              >
                 قيم الخدمة الان
               </Button>
             )}
@@ -579,7 +699,9 @@ export default function SupportPageUI() {
           <div className="popular-questions bg-glass p-4 md:p-6 rounded-2xl shadow-sm flex-1 min-w-[280px]">
             <div className="flex items-center gap-3 mb-5">
               <Image src={faq} alt="faq" className="w-6 h-6" />
-              <h2 className="text-base md:text-2xl font-bold">الأسئلة الشائعة</h2>
+              <h2 className="text-base md:text-2xl font-bold">
+                الأسئلة الشائعة
+              </h2>
             </div>
 
             {/* Category Pills */}
@@ -661,7 +783,9 @@ export default function SupportPageUI() {
                         </span>
                         <FiChevronDown
                           className={`size-4 md:size-5 shrink-0 transition-transform duration-300 text-gray-400 dark:text-gray-400 ms-3 ${
-                            isOpen ? "rotate-180 text-gray-700 dark:text-gray-200" : ""
+                            isOpen
+                              ? "rotate-180 text-gray-700 dark:text-gray-200"
+                              : ""
                           }`}
                         />
                       </button>
@@ -685,9 +809,13 @@ export default function SupportPageUI() {
 
           {/* Contact Section */}
           <div className="contact bg-glass p-4 rounded-2xl shadow-sm w-full md:w-1/3 h-fit">
-            <h2 className="text-base md:text-xl font-bold mb-5">تواصل معنا عن طريق:</h2>
+            <h2 className="text-base md:text-xl font-bold mb-5">
+              تواصل معنا عن طريق:
+            </h2>
             {socialLinksData.length === 0 ? (
-              <p className="text-sm text-gray-500">لا توجد قنوات تواصل متاحة حالياً</p>
+              <p className="text-sm text-gray-500">
+                لا توجد قنوات تواصل متاحة حالياً
+              </p>
             ) : (
               <div className="flex flex-wrap gap-3">
                 {socialLinksData.map((link) => {

@@ -15,7 +15,11 @@ const menuItems = [
   { label: "الرئيسية", userPath: "/", adminPath: "/admin" },
   { label: "ثيماتنا ", userPath: "/themes", adminPath: "/admin/themes" },
   { label: "المقالات", userPath: "/essays", adminPath: "/admin/essays" },
-  { label: "إدارة الحسابات", userPath: "/admin/accounts", adminPath: "/admin/accounts" },
+  {
+    label: "إدارة الحسابات",
+    userPath: "/admin/accounts",
+    adminPath: "/admin/accounts",
+  },
   { label: "الاعدادات", userPath: "/settings", adminPath: "/admin/settings" },
   { label: "الدعم", userPath: "/support", adminPath: "/admin/support" },
 ];
@@ -28,6 +32,7 @@ const Header: React.FC = () => {
     pathname.startsWith("/themes/") ||
     pathname === "/admin/themes" ||
     pathname.startsWith("/admin/themes/");
+
 
   // 🔥 نحدد الصفحة الحالية من المينيو مباشرة
   const currentItem = menuItems.find(
@@ -43,40 +48,37 @@ const Header: React.FC = () => {
     }
   };
 
-
-    
-
   return (
-    <div className="mx-auto  sticky top-0 z-20 w-full mb-3 px-6  py-4 flex items-center justify-between backdrop-blur-3xl  shadow-sm transition-all duration-300 border border-white bg-glass !rounded-full" >
+    <div className="sticky top-0 z-20 mx-auto mb-3 flex w-[calc(100%-0.75rem)] items-center justify-between rounded-full border border-white/80 bg-glass px-3 py-3 shadow-sm backdrop-blur-3xl transition-all duration-300 sm:w-full sm:px-6 md:rounded-full">
       <div className="flex items-center gap-2">
         <TiThMenu
           size={24}
-          className="text-[var(--text-primary)] cursor-pointer block md:hidden"
+          className="block cursor-pointer text-[var(--text-primary)] md:hidden"
           onClick={toggleSidebar}
         />
 
-        <p className="font-bold text-2xl text-[var(--text-primary)] hidden md:block">
+        <p className="hidden text-2xl font-bold text-[var(--text-primary)] md:block">
           {headerTitle}
         </p>
         {/* Logo */}
-          <Link
-            href={isAdmin ? "/admin" : "/"}
-            className="flex items-center gap-3  md:hidden"
-          >
+        <Link
+          href={isAdmin ? "/admin" : "/"}
+          className="flex items-center gap-2 md:hidden"
+        >
           <Image
             src="/favicon.ico"
             alt="Logo"
-            width={40}
-            height={40}
+            width={32}
+            height={32}
             className="rounded-lg"
           />
-          <h1 className="text-2xl font-bold text-[var(--primary-color)]">
+          <h1 className="text-lg font-bold text-[var(--primary-color)]">
             Themiify
           </h1>
         </Link>
       </div>
 
-      <div className="flex items-center md:gap-4 header-btn">
+      <div className="header-btn flex items-center gap-2 md:gap-4">
         {/* Theme Toggle - Top Right */}
         {/* <ThemeToggle /> */}
         <Button className="rounded-full" url="https://themiify.com/">
@@ -93,6 +95,7 @@ const Header: React.FC = () => {
           </Button>
         ) : null}
 
+
         {!isLoggedIn ? (
           <>
             <span className="text-[var(--text-secondary)] font-medium hidden md:block">
@@ -107,8 +110,8 @@ const Header: React.FC = () => {
           </>
         ) : (
           <div className="flex items-center gap-3">
-            <Link 
-              href={isAdmin ? "/admin/settings" : "/settings"} 
+            <Link
+              href={isAdmin ? "/admin/settings" : "/settings"}
               title="تعديل الملف الشخصي"
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
@@ -137,7 +140,6 @@ const Header: React.FC = () => {
               </div>
             </Link>
           </div>
-
         )}
       </div>
     </div>

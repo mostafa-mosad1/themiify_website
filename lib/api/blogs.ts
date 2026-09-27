@@ -46,6 +46,14 @@ function toStringValue(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+function pickFirstString(...values: unknown[]): string {
+  for (const value of values) {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (text) return text;
+  }
+  return "";
+}
+
 function toNumberValue(value: unknown, fallback = 0): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -76,21 +84,40 @@ function parseCollectionPayload(
     return { items: [] };
   }
 
-  const dataValue = payload.data;
-  if (Array.isArray(dataValue)) {
-    const pagination: IAdminPagination = {
-      current_page: toNumberValue(payload.current_page, pageFallback),
-      last_page: toNumberValue(payload.last_page, 1),
-      per_page: toNumberValue(payload.per_page, perPageFallback),
-      total: toNumberValue(payload.total, dataValue.length),
-      from: typeof payload.from === "number" ? payload.from : null,
-      to: typeof payload.to === "number" ? payload.to : null,
-    };
-    return { items: dataValue, pagination };
-  }
+  const rootData = isRecord(payload.data) ? payload.data : payload;
+  const directArray = Array.isArray(payload.data)
+    ? payload.data
+    : Array.isArray(rootData?.data)
+      ? rootData.data
+      : Array.isArray(rootData?.blogs)
+        ? rootData.blogs
+        : Array.isArray(rootData?.items)
+          ? rootData.items
+          : [];
 
-  if (Array.isArray(payload.blogs)) {
-    return { items: payload.blogs };
+  if (directArray.length > 0 || rootData === payload) {
+    const pagination: IAdminPagination = {
+      current_page: toNumberValue(
+        rootData.current_page ?? payload.current_page,
+        pageFallback,
+      ),
+      last_page: toNumberValue(rootData.last_page ?? payload.last_page, 1),
+      per_page: toNumberValue(
+        rootData.per_page ?? payload.per_page,
+        perPageFallback,
+      ),
+      total: toNumberValue(rootData.total ?? payload.total, directArray.length),
+      from:
+        typeof (rootData.from ?? payload.from) === "number"
+          ? Number(rootData.from ?? payload.from)
+          : null,
+      to:
+        typeof (rootData.to ?? payload.to) === "number"
+          ? Number(rootData.to ?? payload.to)
+          : null,
+    };
+
+    return { items: directArray, pagination };
   }
 
   return { items: [] };
@@ -162,12 +189,24 @@ export function normalizeBlog(raw: unknown): IBlog | null {
   const rawImage = item.image_url ?? item.image;
   const cleanImage = toCleanImageValue(rawImage);
 
-  const rawContent =
-    toStringValue(item.content) || toStringValue(item.description);
-  const cleanContent = cleanAndFormatBlogContent(rawContent);
-  const cleanDescription = stripHtml(
-    toStringValue(item.description) || rawContent,
-  )
+  const rawDescription = pickFirstString(
+    item.description,
+    item.summary,
+    item.short_description,
+    item.excerpt,
+    item.meta_description,
+    item.metaDescription,
+    item.body,
+  );
+  const rawContent = pickFirstString(
+    item.content,
+    item.body,
+    item.article,
+    item.text,
+    rawDescription,
+  );
+  const cleanContent = cleanAndFormatBlogContent(rawContent || rawDescription);
+  const cleanDescription = stripHtml(rawDescription || rawContent)
     .slice(0, 200)
     .trim();
   const title = toStringValue(item.title) || toStringValue(item.name) || "";
