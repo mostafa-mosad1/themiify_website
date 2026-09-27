@@ -26,13 +26,13 @@ const menuItems = [
 
 const Header: React.FC = () => {
   const pathname = usePathname();
-  const {isAdmin  ,userName, userRole, isLoggedIn, userAvatar, loading } = useUserData();
+  const { isAdmin, userName, userRole, isLoggedIn, userAvatar, loading } =
+    useUserData();
   const isThemesSection =
     pathname === "/themes" ||
     pathname.startsWith("/themes/") ||
     pathname === "/admin/themes" ||
     pathname.startsWith("/admin/themes/");
-
 
   // 🔥 نحدد الصفحة الحالية من المينيو مباشرة
   const currentItem = menuItems.find(
@@ -78,7 +78,7 @@ const Header: React.FC = () => {
         </Link>
       </div>
 
-      <div className="header-btn flex items-center gap-2 md:gap-4">
+      <div className="header-btn hidden items-center gap-2 md:flex md:gap-4">
         {/* Theme Toggle - Top Right */}
         {/* <ThemeToggle /> */}
         <Button className="rounded-full" url="https://themiify.com/">
@@ -94,7 +94,6 @@ const Header: React.FC = () => {
             الدش بورد
           </Button>
         ) : null}
-
 
         {!isLoggedIn ? (
           <>
