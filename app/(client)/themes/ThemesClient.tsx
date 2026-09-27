@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { useUserData } from "@/lib/hooks/useUserData";
@@ -8,12 +9,10 @@ import { useCache, CACHE_DURATION } from "@/lib/hooks/useCache";
 import ThemeCard from "@/components/ui/ThemeCard";
 import CategoryFilterBar from "@/components/shared/CategoryFilterBar";
 import type { Category } from "@/lib/types";
-import { toast } from "sonner";
 import { BiSearch } from "react-icons/bi";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchThemes } from "@/lib/api/themes";
-import { fetchCategories, fetchClientCategories } from "@/lib/api/categories";
-import { fetchPlatforms, fetchClientPlatforms } from "@/lib/api/platforms";
+import { fetchClientCategories } from "@/lib/api/categories";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 // Defines the TypeScript interfaces used for data structures within this file.
@@ -42,11 +41,6 @@ interface Theme {
 }
 
 // Category is imported from @/lib/types
-
-interface Platform {
-  id: string | number;
-  name: string;
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 // Utility functions used across the component for data processing and formatting.
@@ -334,39 +328,37 @@ const PageHeader = ({
   onSelectCategory,
 }: PageHeaderProps) => (
   <div className="mb-8">
-
     <div className="flex justify-between lg:items-center gap-4 flex-1 flex-col lg:flex-row">
-
-       <h1 className="md:text-xl text-lg  font-bold text-black  dark:text-white flex-1">
-
+      <h1 className="md:text-xl text-lg  font-bold text-black  dark:text-white flex-1">
         تصفح الثيمات حسب القطاع
+      </h1>
 
-        </h1>
-
-        <div className="flex flex-col md:flex-row justify-between  flex-1  md:items-center gap-4">
-          <div className="flex items-center gap-2 bg-glass border w-10/12  rounded-full py-2 px-6">
-            <BiSearch className="text-gray-500" />
-            <input
-              type="text"
-              placeholder="ابحث عن ثيمك المفضل..."
-              className="w-full outline-none px-2 py-1 bg-transparent"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+      <div className="flex flex-col md:flex-row justify-between  flex-1  md:items-center gap-4">
+        <div className="flex items-center gap-2 bg-glass border w-10/12  rounded-full py-2 px-6">
+          <BiSearch className="text-gray-500" />
+          <input
+            type="text"
+            placeholder="ابحث عن ثيمك المفضل..."
+            className="w-full outline-none px-2 py-1 bg-transparent"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
+      </div>
     </div>
 
     {/* Category filter */}
-    {categories.length > 0 && ( 
-    <div className="CategoryFilter mt-3">
-      <h3 className="md:text-xl text-lg font-bold text-black  dark:text-white flex-1">التصنيفات</h3>
-      <CategoryFilterBar
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelectCategory={onSelectCategory}
-      />
-    </div>
+    {categories.length > 0 && (
+      <div className="CategoryFilter mt-3">
+        <h3 className="md:text-xl text-lg font-bold text-black  dark:text-white flex-1">
+          التصنيفات
+        </h3>
+        <CategoryFilterBar
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={onSelectCategory}
+        />
+      </div>
     )}
   </div>
 );
@@ -386,46 +378,17 @@ const PageContent = () => {
   const platformQuery = searchParams.get("platform");
   const categoryQuery = searchParams.get("category");
   const pageQuery = searchParams.get("page");
-  const currentPageFromUrl = pageQuery ? Math.max(1, parseInt(pageQuery, 10)) : 1;
+  const currentPageFromUrl = pageQuery
+    ? Math.max(1, parseInt(pageQuery, 10))
+    : 1;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    categoryQuery ?? null,
-  );
-  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(
-    platformQuery ?? null,
-  );
-  const [currentPage, setCurrentPage] = useState(currentPageFromUrl);
-
-  // Keep local state in sync with URL
-  useEffect(() => {
-    setSelectedPlatform(platformQuery ?? null);
-    setSelectedCategory(categoryQuery ?? null);
-    if (pageQuery) {
-      setCurrentPage(Math.max(1, parseInt(pageQuery, 10)));
-    }
-  }, [platformQuery, categoryQuery, pageQuery]);
-
-  /** Navigate to themes page with updated platform query param */
-  const handleSelectPlatform = (platformName: string | null) => {
-    setSelectedPlatform(platformName);
-    setSelectedCategory(null);
-    setCurrentPage(1);
-    const params = new URLSearchParams(searchParams.toString());
-    if (platformName) {
-      params.set("platform", platformName);
-    } else {
-      params.delete("platform");
-    }
-    params.delete("category");
-    params.delete("page");
-    router.replace(`${pathname}?${params.toString()}`);
-  };
+  const selectedCategory = categoryQuery ?? null;
+  const selectedPlatform = platformQuery ?? null;
+  const currentPage = currentPageFromUrl;
 
   /** Navigate to themes page with updated category query param */
   const handleSelectCategory = (categoryName: string | null) => {
-    setSelectedCategory(categoryName);
-    setCurrentPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (categoryName) {
       params.set("category", categoryName);
@@ -437,7 +400,6 @@ const PageContent = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
     const params = new URLSearchParams(searchParams.toString());
     if (newPage > 1) {
       params.set("page", String(newPage));
@@ -448,7 +410,7 @@ const PageContent = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const { isLoggedIn, loading: userLoading } = useUserData();
+  const { loading: userLoading } = useUserData();
 
   // ── Data Fetching ───────────────────────────────────────────────────────────
   // Retrieves themes, categories, and platforms data from backend APIs.
@@ -464,10 +426,13 @@ const PageContent = () => {
       const res = await fetchThemes({ page: currentPage });
       return { themes: res.themes || [], pagination: res.pagination };
     },
-    { duration: CACHE_DURATION.THEMES }
+    { duration: CACHE_DURATION.THEMES },
   );
 
-  const rawThemes = themesResponse?.themes ?? [];
+  const rawThemes = useMemo(
+    () => themesResponse?.themes ?? [],
+    [themesResponse?.themes],
+  );
   const paginationMeta = themesResponse?.pagination;
 
   const { data: rawCategories, loading: categoriesLoading } = useCache<
@@ -481,52 +446,55 @@ const PageContent = () => {
     { duration: CACHE_DURATION.CATEGORIES },
   );
 
-  const { data: rawPlatforms, loading: platformsLoading } = useCache<
-    Platform[]
-  >(
-    "platforms",
-    async () => {
-      const res = await fetchClientPlatforms();
-      return (res.platforms || []) as unknown as Platform[];
-    },
-    { duration: CACHE_DURATION.PLATFORMS },
+  const allCategories = useMemo<Category[]>(
+    () => rawCategories ?? [],
+    [rawCategories],
   );
+
+  const platformsLoading = false;
 
   // ── Data Transformation (Derived Data) ──────────────────────────────────────
   // Processes raw API responses into structured formats suitable for the UI components.
 
-  const allThemes: Theme[] =
-    rawThemes
-      ?.filter((theme: any) => theme.is_visible !== false) // hide themes marked hidden by admin
-      .map((theme: any) => ({
-        id: theme.id,
-        name: theme.name || "بدون اسم",
-        imageUrl:
-          theme.banner_url ||
-          theme.image_url ||
-          extractImageUrl(theme.images || theme.banner),
-        price: Number(theme.price) || 0,
-        userGuideUrl: theme.inspect_link || "#",
-        previewLink: theme.inspect_link || "",
-        buyLink: theme.buy_link || "",
-        categoryName: theme.category_name || theme.category?.name || "",
-        categoryId: theme.category_id || theme.category?.id || null,
-        platformName: theme.platform_name || theme.platform?.name || "",
-        platformId: theme.platform_id || theme.platform?.id || null,
-        demos: theme.theme_demos || [],
-      })) ?? [];
-
-  const allCategories: Category[] = rawCategories ?? [];
+  const allThemes = useMemo<Theme[]>(() => {
+    return (
+      rawThemes
+        ?.filter((theme: any) => theme.is_visible !== false)
+        .map((theme: any) => ({
+          id: theme.id,
+          name: theme.name || "بدون اسم",
+          imageUrl:
+            theme.banner_url ||
+            theme.image_url ||
+            extractImageUrl(theme.images || theme.banner),
+          price: Number(theme.price) || 0,
+          userGuideUrl: theme.inspect_link || "#",
+          previewLink: theme.inspect_link || "",
+          buyLink: theme.buy_link || "",
+          categoryName: theme.category_name || theme.category?.name || "",
+          categoryId: theme.category_id || theme.category?.id || null,
+          platformName: theme.platform_name || theme.platform?.name || "",
+          platformId: theme.platform_id || theme.platform?.id || null,
+          demos: theme.theme_demos || [],
+        })) ?? []
+    );
+  }, [rawThemes]);
 
   const isPlatformMatch = (themePlatform: string, selected: string | null) => {
     if (!selected) return true;
     const t = (themePlatform || "").trim().toLowerCase();
     const s = (selected || "").trim().toLowerCase();
     if (t === s) return true;
-    if ((t === "salla" || t === "سلة") && (s === "salla" || s === "سلة")) return true;
+    if ((t === "salla" || t === "سلة") && (s === "salla" || s === "سلة"))
+      return true;
     if ((t === "zid" || t === "زد") && (s === "zid" || s === "زد")) return true;
-    if ((t === "shopify" || t === "شوبيفاي") && (s === "shopify" || s === "شوبيفاي")) return true;
-    if ((t === "youcan" || t === "يوكان") && (s === "youcan" || s === "يوكان")) return true;
+    if (
+      (t === "shopify" || t === "شوبيفاي") &&
+      (s === "shopify" || s === "شوبيفاي")
+    )
+      return true;
+    if ((t === "youcan" || t === "يوكان") && (s === "youcan" || s === "يوكان"))
+      return true;
     return false;
   };
 
@@ -563,23 +531,29 @@ const PageContent = () => {
     const matchesCategory =
       selectedCategory === null ||
       (theme.categoryName &&
-        theme.categoryName.trim().toLowerCase() === selectedCategory.trim().toLowerCase()) ||
+        theme.categoryName.trim().toLowerCase() ===
+          selectedCategory.trim().toLowerCase()) ||
       allCategories.some(
         (c) =>
-          String(c.name).trim().toLowerCase() === selectedCategory.trim().toLowerCase() &&
-          String(c.id) === String(theme.categoryId)
+          String(c.name).trim().toLowerCase() ===
+            selectedCategory.trim().toLowerCase() &&
+          String(c.id) === String(theme.categoryId),
       );
-    const matchesPlatform = isPlatformMatch(theme.platformName, selectedPlatform);
+    const matchesPlatform = isPlatformMatch(
+      theme.platformName,
+      selectedPlatform,
+    );
     return matchesSearch && matchesCategory && matchesPlatform;
   });
 
   // ── Pagination Logic ────────────────────────────────────────────────────────
   const isServerPagination = Boolean(
-    paginationMeta && (paginationMeta.last_page > 1 || paginationMeta.total > 12)
+    paginationMeta &&
+    (paginationMeta.last_page > 1 || paginationMeta.total > 12),
   );
 
   const totalPages = isServerPagination
-    ? (paginationMeta?.last_page || 1)
+    ? paginationMeta?.last_page || 1
     : Math.max(1, Math.ceil(filteredThemes.length / ITEMS_PER_PAGE));
 
   const paginatedThemes = isServerPagination
@@ -666,33 +640,32 @@ const PageContent = () => {
 
   return (
     <section className=" mx-auto p-6 bg-glass min-h-[85vh]">
-
       <div className="md:my-4 my-2 ">
-                  <p className="md:text-2xl text-xl font-bold text-black  dark:text-white mb-2">
-                    اكتشف مجموعة الثيمات المصممة خصيصًا لمتجرك
-                  </p>
-                  <p className="text-black  dark:text-white text-lg font-normal max-w-3xl">
-                  اختَر الثيم اللي يناسب نشاطك ويقدّم تجربة تسوّق مميزة
-                  
-                  </p>
-                </div>
+        <p className="md:text-2xl text-xl font-bold text-black  dark:text-white mb-2">
+          اكتشف مجموعة الثيمات المصممة خصيصًا لمتجرك
+        </p>
+        <p className="text-black  dark:text-white text-lg font-normal max-w-3xl">
+          اختَر الثيم اللي يناسب نشاطك ويقدّم تجربة تسوّق مميزة
+        </p>
+      </div>
 
-      
-       
-          <PageHeader
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            categories={visibleCategories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={handleSelectCategory}
-          />
-
+      <PageHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        categories={visibleCategories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleSelectCategory}
+      />
 
       <main className="all-themes mt-8 ">
         <AnimatePresence mode="wait">
           {filteredThemes.length === 0 && searchQuery ? (
             /* No search results */
-            <NoResults key="no-results" searchQuery={searchQuery} router={router} />
+            <NoResults
+              key="no-results"
+              searchQuery={searchQuery}
+              router={router}
+            />
           ) : filteredThemes.length === 0 ? (
             /* Empty state */
             <motion.div
@@ -744,7 +717,6 @@ const PageContent = () => {
     </section>
   );
 };
-
 
 // ─── Main Page Export ─────────────────────────────────────────────────────────
 // Wraps the PageContent component in a Suspense boundary as required by Next.js

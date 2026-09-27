@@ -1,12 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo, useState, Suspense } from "react";
 import { fetchBlogs, IBlog } from "@/lib/api/blogs";
-import { fetchSupportClientCategories, ISupportCategory } from "@/lib/api/support-categories";
+import {
+  fetchSupportClientCategories,
+  ISupportCategory,
+} from "@/lib/api/support-categories";
 import { useCache, CACHE_DURATION } from "@/lib/hooks/useCache";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FaCalendar, FaEye, FaImage } from "react-icons/fa";
+import { FaImage } from "react-icons/fa";
 import { BiSearch } from "react-icons/bi";
 import { useRouter, useSearchParams } from "next/navigation";
 import { stripHtml } from "@/lib/utils";
@@ -56,18 +60,6 @@ const EssayCardSkeleton = () => (
 
 // ─── Essay Card Component ───────────────────────────
 const EssayCard = ({ essay }: { essay: Essay }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ar-EG", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  // دالة لتوليد رقم عشوائي للمشاهدات (للتجميل)
-
-
   const titleText = essay.title || essay.name || "مقال بدون عنوان";
   const img = essay.image_url || essay.image;
 
@@ -78,10 +70,16 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
       transition={{ duration: 0.5 }}
       className="bg-glass rounded-2xl overflow-hidden shadow hover:shadow-lg transition-all duration-300  group"
     >
-      <Link href={`/essays/${essay.id}`} className="no-underline flex flex-col lg:flex-row lg:p-6">
+      <Link
+        href={`/essays/${essay.id}`}
+        className="no-underline flex flex-col lg:flex-row lg:p-6"
+      >
         {/* الصورة في الأعلى */}
         <div className="lg:w-2/5 w-full relative overflow-hidden bg-gray-100 rounded-lg h-56 ">
-          {img && typeof img === "string" && !img.includes("[object") && img.trim() ? (
+          {img &&
+          typeof img === "string" &&
+          !img.includes("[object") &&
+          img.trim() ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={img}
@@ -105,8 +103,7 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
         {/* المحتوى */}
         <div className="p-5 w-full lg:w-3/5">
           {/* التاريخ والمشاهدات في سطر واحد */}
-          <div className="flex items-center justify-between text-gray-500 text-sm mb-3">
-          </div>
+          <div className="flex items-center justify-between text-gray-500 text-sm mb-3"></div>
 
           {/* العنوان */}
           <h3 className="md:text-xl text-sm font-bold  mb-2 !text-black group-hover:text-orange-500  transition-colors line-clamp-2">
@@ -132,28 +129,49 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
 // ─── Main Page Component ────────────────────────────
 function EssaysContent() {
   const searchParams = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get("category") || "الكل");
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const activeTab = searchParams.get("category") || "الكل";
+  const rawCurrentPage = Number(searchParams.get("page") || "1");
+  const currentPage =
+    Number.isFinite(rawCurrentPage) && rawCurrentPage > 0
+      ? Math.floor(rawCurrentPage)
+      : 1;
+  const API_PAGE_SIZE = 3;
 
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "الكل") {
       params.delete("category");
     } else {
       params.set("category", tab);
     }
+    params.set("page", "1");
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const { data: rawBlogs, loading } = useCache<Essay[]>(
-    "essays",
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(Math.max(1, page)));
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const { data: blogPage, loading } = useCache<{
+    blogs: Essay[];
+    pagination?: any;
+  }>(
+    `essays_page_${currentPage}`,
     async () => {
-      const { blogs } = await fetchBlogs();
-      return blogs;
+      const res = await fetchBlogs({
+        page: currentPage,
+        per_page: API_PAGE_SIZE,
+      });
+      return {
+        blogs: res.blogs || [],
+        pagination: res.pagination,
+      };
     },
-    { duration: CACHE_DURATION.ESSAYS }
+    { duration: CACHE_DURATION.ESSAYS },
   );
 
   const { data: rawCategories } = useCache<ISupportCategory[]>(
@@ -161,11 +179,19 @@ function EssaysContent() {
     async () => {
       return await fetchSupportClientCategories();
     },
-    { duration: CACHE_DURATION.CATEGORIES }
+    { duration: CACHE_DURATION.CATEGORIES },
   );
 
-  const essays = rawBlogs ?? [];
-  const categories = rawCategories ?? [];
+  const essays = useMemo(() => blogPage?.blogs ?? [], [blogPage?.blogs]);
+  const categories = useMemo(() => rawCategories ?? [], [rawCategories]);
+  const paginationMeta = blogPage?.pagination;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      (paginationMeta?.total ?? essays.length) /
+        (paginationMeta?.per_page || API_PAGE_SIZE),
+    ),
+  );
 
   // التابس الديناميكية من فئات الدعم
   const tabs = useMemo(() => {
@@ -182,67 +208,74 @@ function EssaysContent() {
   const filteredEssays = useMemo(() => {
     let filtered = essays;
 
-    // فلترة حسب البحث
     if (searchQuery) {
       filtered = filtered.filter(
         (essay) =>
-          (essay.title || essay.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (essay.description || essay.content || "").toLowerCase().includes(searchQuery.toLowerCase()),
+          (essay.title || essay.name || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (essay.description || essay.content || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
       );
     }
 
-    // فلترة حسب التاب
     if (activeTab !== "الكل") {
       filtered = filtered.filter(
         (essay) =>
           essay.category === activeTab ||
           (essay as any).support_category?.name === activeTab ||
-          (essay as any).category_name === activeTab
+          (essay as any).category_name === activeTab,
       );
     }
 
     return filtered;
   }, [searchQuery, activeTab, essays]);
 
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedEssays = useMemo(() => filteredEssays, [filteredEssays]);
+
   return (
-    <div className="min-h-screen   ">
-      <div className="container  max-w-7xl px-4 w-11/12 mx-auto bg-glass rounded-3xl py-2">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:mb-6 mb-4 py-3">
+    <div className="min-h-screen">
+      <div className="container mx-auto w-[calc(100%-1rem)] max-w-7xl rounded-3xl bg-glass px-3 py-3 sm:px-4 md:px-6">
+        <div className="mb-4 flex flex-col gap-3 py-3 md:mb-6 md:flex-row md:items-center md:justify-between">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-right mb-8"
+            className="mb-2 text-right md:mb-8"
           >
-            <h1 className="md:text-2xl text-lg font-bold  mb-3">دليلك لتجربة متجر أفضل</h1>
-            <p className="text-lg ">
+            <h1 className="mb-2 text-lg font-bold md:text-2xl">
+              دليلك لتجربة متجر أفضل
+            </h1>
+            <p className="text-sm text-gray-700 md:text-lg">
               محتوى مبني على أفضل ممارسات تجربة المستخدم والتجارة الإلكترونية
             </p>
           </motion.div>
           {/* Search */}
-          <div className="relative md:w-80">
+          <div className="relative w-full md:w-80">
             <input
               type="text"
               placeholder="ابحث عن ما يهمك..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-3 pr-12  rounded-full outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
+              className="w-full rounded-full border border-white/60 bg-white/40 px-5 py-2.5 pr-11 text-sm outline-none transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 md:py-3"
             />
-            <BiSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-400" />
+            <BiSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-gray-400" />
           </div>
         </div>
         {/* Search Bar - جنب التابس */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* Tabs */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`h-[38px] whitespace-nowrap rounded-full px-3 text-[11px] font-medium transition-all duration-300 sm:px-4 sm:text-xs md:h-[42px] md:px-5 md:text-sm ${
                   activeTab === tab
                     ? "gradient-primary text-white shadow-md"
-                    : "!text-gray-700 hover:!bg-gray-200 bg-glass"
+                    : "bg-glass !text-gray-700 hover:!bg-gray-200"
                 }`}
               >
                 {tab}
@@ -341,16 +374,54 @@ function EssaysContent() {
           </motion.div>
         ) : (
           <div className="flex flex-col gap-3">
-            {filteredEssays.map((essay) => (
+            {paginatedEssays.map((essay) => (
               <EssayCard key={essay.id} essay={essay} />
             ))}
           </div>
         )}
 
-        {/* عدد المقالات */}
         {!loading && filteredEssays.length > 0 && (
-          <div className="text-center mt-8 text-gray-500">
-            عرض {filteredEssays.length} مقال
+          <div className="mt-8 text-center text-gray-500">
+            عرض {paginatedEssays.length} من {filteredEssays.length} مقال
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => handlePageChange(safePage - 1)}
+              disabled={safePage <= 1}
+              className="h-[38px] rounded-full bg-glass px-4 text-sm text-gray-700 disabled:opacity-40"
+            >
+              السابق
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => handlePageChange(page)}
+                  className={`h-[38px] min-w-[38px] rounded-full px-3 text-sm ${
+                    page === safePage
+                      ? "gradient-primary text-white"
+                      : "bg-glass text-gray-700"
+                  }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+
+            <button
+              type="button"
+              onClick={() => handlePageChange(safePage + 1)}
+              disabled={safePage >= totalPages}
+              className="h-[38px] rounded-full bg-glass px-4 text-sm text-gray-700 disabled:opacity-40"
+            >
+              التالي
+            </button>
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // types/images.d.ts
 declare module "*.png" {
   const content: any;
@@ -28,3 +29,11 @@ declare module "*.ico" {
   const content: any;
   export default content;
 }
+
+declare module "*.css" {
+  const content: { [key: string]: string };
+  export default content;
+}
+
+declare module "quill/dist/quill.snow.css";
+declare module "./globals.css";
