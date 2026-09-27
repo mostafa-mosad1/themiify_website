@@ -8,21 +8,25 @@ import { Suspense } from "react";
 
 // Icons
 import { AiFillHome } from "react-icons/ai";
-import { FaFileSignature, FaWpforms, FaSignInAlt, FaChevronDown, FaUsers, FaGlobe } from "react-icons/fa";
+import {
+  FaFileSignature,
+  FaWpforms,
+  FaSignInAlt,
+  FaChevronDown,
+  FaGlobe,
+} from "react-icons/fa";
 import { IoClose, IoSettings } from "react-icons/io5";
 import { IoIosColorPalette } from "react-icons/io";
 import { TbLogout } from "react-icons/tb";
 import { MdOutlineSupportAgent } from "react-icons/md";
 import { MdCategory, MdAdminPanelSettings } from "react-icons/md";
 import { HiMiniMinusSmall } from "react-icons/hi2";
-import { BsJournalText } from "react-icons/bs";
 
 // Lib
 import { useCache, CACHE_DURATION } from "@/lib/hooks/useCache";
 import { useUserData } from "@/lib/hooks/useUserData";
-import { fetchPlatforms, fetchClientPlatforms } from "@/lib/api/platforms";
+import { fetchClientPlatforms } from "@/lib/api/platforms";
 import { logoutUser } from "@/lib/api/auth";
-
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,7 +58,7 @@ const MENU_ITEMS: MenuItem[] = [
     showForUser: true,
     showForGuest: true,
   },
-   {
+  {
     id: "platforms",
     label: "المنصات",
     icon: <FaGlobe size={20} />,
@@ -102,7 +106,7 @@ const MENU_ITEMS: MenuItem[] = [
   {
     id: "form",
     label: "فورم",
-    icon: <FaWpforms size={20} />, 
+    icon: <FaWpforms size={20} />,
     userPath: "/form",
     adminPath: "/admin/form",
     showForUser: false,
@@ -126,7 +130,7 @@ const MENU_ITEMS: MenuItem[] = [
     adminPath: "/admin/settings",
     showForUser: false,
     showForGuest: false,
-  }
+  },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -138,7 +142,9 @@ const isMobileScreen = (): boolean =>
 
 // ─── Skeleton Loader ─────────────────────────────────────────────────────────
 
-const SidebarSkeleton: React.FC<{ className?: string }> = ({ className = "" }) => (
+const SidebarSkeleton: React.FC<{ className?: string }> = ({
+  className = "",
+}) => (
   <div
     className={`bg-glass p-4 rounded-3xl flex flex-col animate-pulse ${className}`}
   >
@@ -190,11 +196,14 @@ const PlatformItem: React.FC<PlatformItemProps> = ({
         }}
         className="flex items-center cursor-pointer"
       >
-        <HiMiniMinusSmall size={16} className={` shrink-0 ${
+        <HiMiniMinusSmall
+          size={16}
+          className={` shrink-0 ${
             isActive
               ? "text-[var(--primary-color)] font-bold text-base"
               : "text-black dark:text-white hover:text-[var(--primary-color)]"
-          }`} />
+          }`}
+        />
         <span
           className={`text-sm transition-all block w-full hover:-translate-x-1 ${
             isActive
@@ -293,7 +302,11 @@ const ThemeMenuItem: React.FC<ThemeMenuItemProps> = ({
           isExpanded ? "max-h-96 opacity-100 mb-2" : "max-h-0 opacity-0 m-0"
         }`}
       >
-        <ul className="flex flex-col gap-3 pr-4 py-2 !shadow-[inset_2px_4px_10px_rgb(14_19_44_/_10%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%)]" role="listbox" aria-label="Platforms">
+        <ul
+          className="flex flex-col gap-3 pr-4 py-2 !shadow-[inset_2px_4px_10px_rgb(14_19_44_/_10%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%)]"
+          role="listbox"
+          aria-label="Platforms"
+        >
           {/* All themes */}
           <li>
             <a
@@ -308,11 +321,14 @@ const ThemeMenuItem: React.FC<ThemeMenuItemProps> = ({
               }}
               className="flex items-center cursor-pointer"
             >
-              <HiMiniMinusSmall size={16} className={` shrink-0 ${
+              <HiMiniMinusSmall
+                size={16}
+                className={` shrink-0 ${
                   isActive && !activePlatform
                     ? "text-[var(--primary-color)] font-bold text-base"
                     : "text-black hover:text-[var(--primary-color)]"
-                }`} />
+                }`}
+              />
               <span
                 className={`text-sm transition-all block w-full hover:-translate-x-1 ${
                   isActive && !activePlatform
@@ -323,7 +339,7 @@ const ThemeMenuItem: React.FC<ThemeMenuItemProps> = ({
                 كل الثيمات
               </span>
             </a>
-          </li> 
+          </li>
 
           {platforms.map((platform) => (
             <PlatformItem
@@ -389,37 +405,38 @@ const SideBarContent: React.FC = () => {
 
   const isAdminSection = pathname.startsWith("/admin");
 
-  const isOnThemesPage =
-    pathname === "/themes" || pathname === "/admin/themes";
+  const isOnThemesPage = pathname === "/themes" || pathname === "/admin/themes";
+  const isThemesSection =
+    pathname === "/themes" ||
+    pathname.startsWith("/themes/") ||
+    pathname === "/admin/themes" ||
+    pathname.startsWith("/admin/themes/");
 
-  const [expandedMenu, setExpandedMenu] = useState<string | null>(
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(() =>
     isOnThemesPage ? "theme" : null,
   );
 
-  const { isAdmin, isSuperAdmin, userRole, isLoggedIn, loading } = useUserData();
+  const { isAdmin, isSuperAdmin, userRole, isLoggedIn, loading } =
+    useUserData();
   const hasAdminAccess =
-    isAdmin || isSuperAdmin || userRole === "admin" || userRole === "super_admin";
-
-  // Collapse theme submenu when navigating away from themes pages
-  useEffect(() => {
-    if (!isOnThemesPage) {
-      setExpandedMenu(null);
-    }
-  }, [isOnThemesPage]);
+    isAdmin ||
+    isSuperAdmin ||
+    userRole === "admin" ||
+    userRole === "super_admin";
 
   // Listen for localStorage changes to update user data
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'userData' || e.key === 'isAdmin' || e.key === 'userRole') {
+      if (e.key === "userData" || e.key === "isAdmin" || e.key === "userRole") {
         // Force refresh when user data changes
         window.location.reload();
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
@@ -427,7 +444,10 @@ const SideBarContent: React.FC = () => {
     "platforms",
     async () => {
       const res = await fetchClientPlatforms();
-      return (res.platforms || []).map((p) => ({ id: String(p.id), name: p.name }));
+      return (res.platforms || []).map((p) => ({
+        id: String(p.id),
+        name: p.name,
+      }));
     },
     { duration: CACHE_DURATION.PLATFORMS },
   );
@@ -487,9 +507,7 @@ const SideBarContent: React.FC = () => {
   // ── Render loading skeleton ─────────────────────────────────────────────────
 
   if (loading) {
-    return (
-      <SidebarSkeleton className="w-[20%] h-[90vh] shadow-sm" />
-    );
+    return <SidebarSkeleton className="w-[20%] h-[90vh] shadow-sm" />;
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -510,7 +528,7 @@ const SideBarContent: React.FC = () => {
       {/* Sidebar panel */}
       <div className="w-[80%] md:w-full flex flex-col md:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] md:!bg-transparent z-50 h-full  md:h-[90vh]  md:rounded-2xl p-2 transition-transform duration-300 justify-between">
         {/* Header: logo + close button */}
-        <div className="flex items-center justify-center mb-8 mt-4">
+        <div className="flex items-center justify-between mb-8 mt-4">
           <div
             role="button"
             tabIndex={0}
@@ -599,17 +617,42 @@ const SideBarContent: React.FC = () => {
           })}
         </ul>
 
-        {/* Auth actions */}
-        <div className="mt-4 flex justify-center w-full">
+        <div className="mt-3 flex flex-col gap-2 border-t border-[var(--border-color)] pt-3 md:hidden">
+          <Link
+            href="https://themiify.com/"
+            className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary"
+            aria-label="العودة للموقع"
+          >
+            العودة للموقع
+          </Link>
+
+          {isAdmin && !isThemesSection ? (
+            <Link
+              href="/themes"
+              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-secondary"
+              aria-label="تصفح الثيمات"
+            >
+              تصفح الثيمات
+            </Link>
+          ) : isLoggedIn ? (
+            <Link
+              href="/admin"
+              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary"
+              aria-label="الدش بورد"
+            >
+              الدش بورد
+            </Link>
+          ) : null}
+
           {isLoggedIn ? (
             <button
               type="button"
               onClick={handleLogout}
-              className=" flex items-center justify-center gap-4 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all duration-300 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-red-600 transition-all duration-300 hover:bg-red-50"
               aria-label="Logout"
             >
-              <TbLogout size={20} />
-              <span className="font-medium">تسجيل خروج</span>
+              <TbLogout size={16} />
+              <span>تسجيل خروج</span>
             </button>
           ) : (
             <Link
@@ -618,11 +661,11 @@ const SideBarContent: React.FC = () => {
                 setExpandedMenu(null);
                 closeSidebarOnMobile();
               }}
-              className=" flex items-center gap-4 px-4 py-3 rounded-xl text-primary hover:bg-primary/5 transition-all duration-300 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-primary transition-all duration-300 hover:bg-primary/5"
               aria-label="Login"
             >
-              <FaSignInAlt size={20} />
-              <span className="font-medium">تسجيل دخول</span>
+              <FaSignInAlt size={16} />
+              <span>تسجيل دخول</span>
             </Link>
           )}
         </div>
