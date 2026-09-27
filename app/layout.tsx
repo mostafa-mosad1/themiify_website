@@ -29,9 +29,6 @@ export default function RootLayout({
           <div className=" mx-auto w-[96%] ">
             {children}
           </div>
-        {/* <ThemeProvider> */}
-        <Toaster />
-        <div className=" mx-auto w-[96%] ">{children}</div>
         {/* </ThemeProvider> */}
       </body>
     </html>
