@@ -65,9 +65,8 @@ export default function RegisterClient() {
         userRole: "end_user",
       };
 
-      localStorage.setItem("localAuthSession", JSON.stringify(sessionData));
-      localStorage.setItem("userData", JSON.stringify({ email: formData.email, name: formData.name, role: "end_user" }));
       document.cookie = `authToken=${sessionData.userId}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `localAuthSession=${encodeURIComponent(JSON.stringify(sessionData))}; path=/; max-age=604800; SameSite=Lax`;
 
       toast.success("تم إنشاء الحساب بنجاح!");
       window.location.href = "/";

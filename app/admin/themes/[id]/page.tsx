@@ -86,7 +86,10 @@ const ThemeDetailPage = async ({
           id: page.id,
           slug: page.slug,
           content: page.content,
-          name: normalized.name,
+          name:
+            typeof page.title === "string" && page.title.trim()
+              ? page.title
+              : normalized.name,
           sections: normalized.sections,
         };
       })

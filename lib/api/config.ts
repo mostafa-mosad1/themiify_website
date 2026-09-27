@@ -62,17 +62,6 @@ export async function apiClient<T>(
 
   let authToken = token;
   if (!options.skipAuth && !authToken && typeof window !== "undefined") {
-    authToken =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("bearer_token") ||
-      localStorage.getItem("adminToken") ||
-      localStorage.getItem("token") ||
-      localStorage.getItem("access_token") ||
-      localStorage.getItem("jwt") ||
-      sessionStorage.getItem("authToken") ||
-      sessionStorage.getItem("bearer_token") ||
-      sessionStorage.getItem("adminToken") ||
-      null;
     if (!authToken) {
       const match = document.cookie.match(
         /(?:^|;\s*)(?:authToken|adminToken|bearer_token|token|access_token|auth_token)=([^;]+)/

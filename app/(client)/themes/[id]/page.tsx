@@ -16,7 +16,9 @@ function parseThemePagesMap(raw: unknown): Record<string, string> {
   if (Array.isArray(raw)) {
     const result: Record<string, string> = {};
     for (const page of raw as any[]) {
-      const slug = String(page?.slug || page?.id || page?.name || "page");
+      const slug = String(
+        page?.title || page?.name || page?.slug || page?.id || "page",
+      );
       result[slug] = typeof page?.content === "string" ? page.content : JSON.stringify(page);
     }
     return result;
@@ -37,7 +39,9 @@ function parseThemePagesMap(raw: unknown): Record<string, string> {
       if (Array.isArray(parsed)) {
         const result: Record<string, string> = {};
         for (const page of parsed as any[]) {
-          const slug = String(page?.slug || page?.id || page?.name || "page");
+          const slug = String(
+            page?.title || page?.name || page?.slug || page?.id || "page",
+          );
           result[slug] = typeof page?.content === "string" ? page.content : JSON.stringify(page);
         }
         return result;

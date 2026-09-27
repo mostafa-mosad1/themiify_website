@@ -99,20 +99,7 @@ export default function LoginClient() {
         };
         document.cookie = `localAuthSession=${encodeURIComponent(JSON.stringify(sessionPayload))}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
 
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("bearer_token", token);
       }
-
-      localStorage.setItem("isAdmin", String(isUserAdmin));
-      localStorage.setItem("userRole", resolvedRole);
-      localStorage.setItem("userEmail", user?.email || formData.email.trim());
-      localStorage.setItem("userData", JSON.stringify({
-        ...user,
-        isAdmin: isUserAdmin,
-        is_super_admin: isSuperAdmin,
-        role: resolvedRole,
-        email: user?.email || formData.email.trim(),
-      }));
 
       toast.success("تم تسجيل الدخول بنجاح");
       

@@ -32,19 +32,42 @@ function isValidToken(val: string | null | undefined): boolean {
   return str !== "" && str !== "undefined" && str !== "null" && str !== "[object Object]";
 }
 
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(
+    new RegExp(`(?:^|;\\s*)${name}=([^;]+)`),
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 function parseUserDataFromStorage(): UserData {
   if (typeof window === "undefined") {
     return { ...DEFAULT_GUEST, loading: false };
   }
 
   try {
+    for (const key of [
+      "authToken",
+      "adminToken",
+      "bearer_token",
+      "token",
+      "access_token",
+      "jwt",
+      "isAdmin",
+      "userRole",
+      "userEmail",
+      "userData",
+      "localAuthSession",
+    ]) {
+      localStorage.removeItem(key);
+    }
+
     const rawToken =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("bearer_token") ||
-      localStorage.getItem("adminToken");
+      getCookie("authToken") ||
+      getCookie("bearer_token") ||
+      getCookie("adminToken");
     const hasValidToken = isValidToken(rawToken);
 
-    const cached = localStorage.getItem("userData");
+    const cached = getCookie("localAuthSession");
 
     if (cached) {
       let parsed: any = null;
@@ -59,15 +82,13 @@ function parseUserDataFromStorage(): UserData {
           parsed.is_super_admin ||
           parsed.isSuperAdmin ||
           parsed.userRole === "super_admin" ||
-          parsed.role === "super_admin" ||
-          localStorage.getItem("userRole") === "super_admin"
+          parsed.role === "super_admin"
         );
         const isAdmin = Boolean(
           isSuperAdmin ||
             parsed.isAdmin ||
             parsed.is_admin ||
-            parsed.role === "admin" ||
-            localStorage.getItem("isAdmin") === "true"
+            parsed.role === "admin"
         );
         const userRole = isSuperAdmin
           ? "super_admin"
@@ -96,20 +117,10 @@ function parseUserDataFromStorage(): UserData {
     }
 
     if (hasValidToken) {
-      const storedRole = localStorage.getItem("userRole") || "user";
-      const isSuper = storedRole === "super_admin";
-      const isAdmin = isSuper || storedRole === "admin" || localStorage.getItem("isAdmin") === "true";
-      const storedEmail = localStorage.getItem("userEmail") || "";
-
       return {
-        isAdmin,
-        isSuperAdmin: isSuper,
-        userRole: storedRole,
+        ...DEFAULT_GUEST,
         isLoggedIn: true,
-        userName: isSuper ? "سوبر أدمن" : (isAdmin ? "أدمن" : (storedEmail ? storedEmail.split("@")[0] : "مستخدم")),
-        userEmail: storedEmail,
-        userAvatar: "",
-        loading: false,
+        userName: "مستخدم",
       };
     }
 
