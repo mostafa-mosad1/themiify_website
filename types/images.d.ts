@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // types/images.d.ts
 declare module "*.png" {
   const content: any;
