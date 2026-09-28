@@ -32,9 +32,9 @@ export default async function AdminLayout({
 
       {/* المحتوى الأساسي - مخفي على الموبايل */}
       <div className="hidden md:block">
-        <div className="flex justify-center gap-3  border rounded-2xl mx-auto p-5 ">
+        <div className="flex justify-center gap-3 border rounded-2xl mx-auto p-5 ">
           <SideBar />
-          <div className="w-[80%] h-fit flex flex-col">
+          <div className="flex-1 min-w-0 h-fit flex flex-col">
             <Header />
             <div className="flex-1 ">{children}</div>
           </div>

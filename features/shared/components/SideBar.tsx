@@ -507,14 +507,16 @@ const SideBarContent: React.FC = () => {
   // ── Render loading skeleton ─────────────────────────────────────────────────
 
   if (loading) {
-    return <SidebarSkeleton className="w-[20%] h-[90vh] shadow-sm" />;
+    return (
+      <SidebarSkeleton className="md:w-[20%] xl:w-[15%] md:min-w-[250px] w-full h-[90vh] shadow-sm" />
+    );
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <main
-      className="md:w-[20%] xl:w-[15%] md:min-w-64  w-full shadow-sm flex flex-col rounded-2xl fixed md:sticky top-0 right-0 h-full  resSideBar z-50 !border-none  bg-glass"
+    <aside
+      className="md:w-[20%] xl:w-[15%] md:min-w-[250px] w-full shadow-sm flex flex-col rounded-2xl fixed md:sticky top-0 right-0 h-full md:h-auto md:self-start resSideBar z-50 !border-none md:bg-glass"
       role="navigation"
       aria-label="Sidebar navigation"
     >
@@ -670,7 +672,7 @@ const SideBarContent: React.FC = () => {
           )}
         </div>
       </div>
-    </main>
+    </aside>
   );
 };
 
@@ -679,7 +681,7 @@ const SideBarContent: React.FC = () => {
 const SideBar: React.FC = () => (
   <Suspense
     fallback={
-      <SidebarSkeleton className="md:w-[20%] w-full h-[90vh] relative md:relative top-0 right-0 z-50" />
+      <SidebarSkeleton className="md:w-[20%] xl:w-[15%] md:min-w-[250px] w-full h-[90vh] relative md:relative top-0 right-0 z-50" />
     }
   >
     <SideBarContent />
