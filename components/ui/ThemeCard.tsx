@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * ProductCard Component
  *
@@ -14,11 +15,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
-import { BsEye, BsEyeSlash } from "react-icons/bs";
+import { BsEye } from "react-icons/bs";
 import { CiFileOn } from "react-icons/ci";
 import { AiOutlineEdit } from "react-icons/ai";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { FaYoutube, FaList } from "react-icons/fa";
 import { resolveIcon } from "@/lib/utils/iconMap";
 import "./ThemeCard.css";
 
@@ -32,77 +32,52 @@ interface ThemeDemo {
   youtube_link?: string;
 }
 
-/**
- * Product Card Props Interface
- */
+
 interface ProductCardProps {
-  /** Product unique identifier */
   id: string | number;
 
-  /** Product display name (recommended max 20 characters) */
   name: string;
 
-  /** Product image URL or path */
   imageUrl: string;
 
-  /** Price in Saudi Riyals */
   price: number | string;
 
-  /** Category name for filtering and display */
   categoryName?: string;
 
-  /** Platform name for filtering and display */
   platformName?: string;
 
-  /** URL to the user guide PDF or page */
   userGuideUrl: string;
 
-  /** ✅ رابط المعاينة (جديد) */
   previewLink?: string;
 
-  /** ✅ رابط الشراء (جديد) */
   buyLink?: string;
 
-  /** Demo items shown as icon buttons next to the theme name */
   demos?: ThemeDemo[];
 
-  /** ✅ رابط قائمة التشغيل (اختياري) */
   playlistLink?: string;
 
-  /** ✅ رابط يوتيوب (اختياري) */
   youtubeLink?: string;
 
-  /** Callback when preview button is clicked */
   onPreview?: () => void;
 
-  /** Callback to delete this theme from the database; receives the theme id */
   onDelete?: (id: string | number) => Promise<any>;
 
-  /** Optional callback when edit button is clicked; defaults to navigating to /themes?edit=<id> */
   onEdit?: (id: string | number) => void;
 
-  /** Callback when buy button is clicked */
   onBuy?: () => void;
 
-  /** Optional: Alt text for product image (defaults to product name) */
   imageAlt?: string;
 
-  /** Optional: Custom class name for additional styling */
   className?: string;
 
-  /** Optional: Image width in pixels (default: 300) */
   imageWidth?: number;
 
-  /** Optional: Image height in pixels (default: 300) */
   imageHeight?: number;
 
-  /** ✅ إظهار أزرار الإجراءات (تعديل/حذف) */
   showActions?: boolean;
 
-  /** حالة إظهار/إخفاء الثيم في صفحة العميل */
   isVisible?: boolean;
 
-  /** Callback لتبديل حالة الإظهار/الإخفاء */
   onToggleVisibility?: (id: string | number, newState: boolean) => Promise<any>;
 
   /**  */
@@ -155,14 +130,9 @@ const ThemeCard: React.FC<ProductCardProps> = ({
   name,
   imageUrl,
   price,
-  userGuideUrl,
   demos = [],
   previewLink, // ✅ إضافة
   buyLink, // ✅ إضافة
-  playlistLink,
-  youtubeLink,
-  onPreview,
-  onBuy,
   onDelete,
   onEdit,
   imageAlt,
@@ -295,20 +265,7 @@ const ThemeCard: React.FC<ProductCardProps> = ({
               <RiDeleteBin6Line size={23} />
             </button>
 
-            {/* Visibility toggle button */}
-            <button
-              onClick={handleToggleVisibility}
-              disabled={isTogglingVisibility}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out ${
-                visible
-                  ? "text-blue-500 bg-blue-300/40 hover:bg-blue-400/50"
-                  : "text-gray-400 bg-gray-300/40 hover:bg-gray-400/50"
-              }`}
-              aria-label={visible ? "إخفاء الثيم من صفحة العميل" : "إظهار الثيم في صفحة العميل"}
-              title={visible ? "إخفاء من صفحة العميل" : "إظهار في صفحة العميل"}
-            >
-              {visible ? <BsEye size={22} /> : <BsEyeSlash size={22} />}
-            </button>
+          
           </div>
         )}
 
