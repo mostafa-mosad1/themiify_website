@@ -258,7 +258,7 @@ function EssaysContent() {
               placeholder="ابحث عن ما يهمك..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-full border border-white/60 bg-white/40 px-5 py-2.5 pr-11 text-sm outline-none transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 md:py-3"
+              className="w-full rounded-full bg-white dark:bg-zinc-800 px-5 py-2.5 pr-11 text-sm text-[var(--text-primary)] dark:text-gray-200 placeholder:text-gray-400 outline-none transition-all focus:ring-2 focus:ring-[var(--primary-color)]/20 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F] md:py-3"
             />
             <BiSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-gray-400" />
           </div>
@@ -271,10 +271,10 @@ function EssaysContent() {
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`h-[38px] whitespace-nowrap rounded-full px-3 text-[11px] font-medium transition-all duration-300 sm:px-4 sm:text-xs md:h-[42px] md:px-5 md:text-sm ${
+                className={`h-[38px] whitespace-nowrap rounded-full px-3 text-[11px] font-medium transition-all duration-300 select-none sm:px-4 sm:text-xs md:h-[42px] md:px-5 md:text-sm ${
                   activeTab === tab
-                    ? "gradient-primary text-white shadow-md"
-                    : "bg-glass !text-gray-700 hover:!bg-gray-200"
+                    ? "gradient-primary text-white shadow-md !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)]"
+                    : "bg-white dark:bg-zinc-800 !text-[var(--text-primary)] dark:!text-gray-200 hover:!bg-gray-50 dark:hover:!bg-zinc-700 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F]"
                 }`}
               >
                 {tab}

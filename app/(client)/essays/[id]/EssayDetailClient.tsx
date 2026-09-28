@@ -71,7 +71,7 @@ function Sidebar({
           <h3 className="font-bold mb-3 text-sm text-[var(--text-primary)]">
             البحث في المقالات
           </h3>
-          <div className="flex items-center gap-2 border border-[var(--border-color)] rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 rounded-xl bg-white dark:bg-zinc-800 px-3 py-2 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F] transition-all focus-within:ring-2 focus-within:ring-[var(--primary-color)]/20">
             <BiSearch className="flex-shrink-0 text-[var(--text-tertiary)]" />
             <input
               type="text"

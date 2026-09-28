@@ -334,7 +334,7 @@ const PageHeader = ({
       </h1>
 
       <div className="flex flex-col md:flex-row justify-between  flex-1  md:items-center gap-4">
-        <div className="flex items-center gap-2 bg-glass border w-10/12  rounded-full py-2 px-6">
+        <div className="flex items-center gap-2 bg-glass border w-10/12 ms-auto  rounded-full py-2 px-6">
           <BiSearch className="text-gray-500" />
           <input
             type="text"
@@ -360,11 +360,24 @@ const PageHeader = ({
   </div>
 );
 
+const STATIC_TIMELINE = [
+  { number: 1, title: "إنشاء حساب" },
+  { number: 2, title: "اختيار الثيم" },
+  { number: 3, title: "الشراء" },
+  { number: 4, title: "التطبيق" },
+  { number: 5, title: "التخصيص" },
+];
+
 // ─── Main Page Content Component ──────────────────────────────────────────────
 // This is the core component that manages state, fetches data, applies filters,
 // and renders the grid of themes or appropriate loading/error states.
 
 const PageContent = () => {
+  const currentStep = 3;
+  const totalSteps = STATIC_TIMELINE.length;
+  const progressWidthPercent =
+    ((currentStep - 1) / (totalSteps - 1)) * (100 - 100 / totalSteps);
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -637,14 +650,68 @@ const PageContent = () => {
 
   return (
     <section className=" mx-auto p-6  min-h-[85vh]">
-      <div className="md:my-4 my-2 ">
-        <p className="md:text-2xl text-xl font-bold text-black  dark:text-white mb-2">
+      <div className="md:my-4 my-2">
+        <p className="md:text-2xl text-xl font-bold text-black dark:text-white mb-2">
           اكتشف مجموعة الثيمات المصممة خصيصًا لمتجرك
         </p>
-        <p className="text-black  dark:text-white text-lg font-normal max-w-3xl">
+        <p className="text-black dark:text-white text-lg font-normal max-w-3xl">
           اختَر الثيم اللي يناسب نشاطك ويقدّم تجربة تسوّق مميزة
         </p>
-        
+      </div>
+
+      {/* Timeline Bar (الـ Stepper مطابق للتصميم ومستجيب بالكامل) */}
+      <div className="mb-8 md:mb-14 w-full py-2">
+        <div className="w-full">
+          {/* شريط الخطوات المتصل */}
+          <div className="relative flex items-center justify-between">
+            {/* خط الربط الأساسي الرمادي العريض خلف الدوائر */}
+            <div
+              className="absolute z-0 h-[5px] md:h-[6px] rounded-full bg-[#e2e8f0] dark:bg-slate-700 top-[18px] sm:top-[22px] md:top-[27px] -translate-y-1/2 shadow-inner"
+              style={{
+                right: `${100 / (totalSteps * 2)}%`,
+                left: `${100 / (totalSteps * 2)}%`,
+              }}
+            />
+
+            {/* خط التقدم الممتلئ العريض بتدرج لوني برتقالي غني ومتناسق */}
+            {progressWidthPercent > 0 && (
+              <div
+                className="absolute z-0 h-[5px] md:h-[6px] rounded-full bg-gradient-to-l from-[#ea580c] via-[#f26a21] to-[#fb923c] top-[18px] sm:top-[22px] md:top-[27px] -translate-y-1/2 transition-all duration-700 ease-out shadow-[0_2px_8px_rgba(242,106,33,0.3)]"
+                style={{
+                  right: `${100 / (totalSteps * 2)}%`,
+                  width: `${progressWidthPercent}%`,
+                }}
+              />
+            )}
+
+            {STATIC_TIMELINE.map((item) => {
+              const isStepDone = item.number <= currentStep;
+
+              return (
+                <div
+                  key={item.number}
+                  className="flex-1 flex flex-col items-center relative z-10 text-center px-0.5"
+                >
+                  {/* دائرة الرقم بتأثير البوكس شادو الداخلي مطابق للصورة */}
+                  <div className="step-circle flex h-9 w-9 sm:h-11 sm:w-11 md:h-[54px] md:w-[54px] items-center justify-center rounded-full text-xs sm:text-sm md:text-lg font-extrabold select-none cursor-pointer transition-all duration-300">
+                    {item.number}
+                  </div>
+
+                  {/* عنوان الخطوة */}
+                  <span
+                    className={`mt-1.5 sm:mt-2.5 md:mt-3.5 text-[9px] sm:text-xs md:text-sm font-bold text-center leading-tight transition-colors duration-300 ${
+                      isStepDone
+                        ? "text-[var(--primary-color)] dark:text-[var(--primary-color)]"
+                        : "text-[#1f2937] dark:text-gray-200"
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
       <div className="border-white/80 bg-glass shadow-sm backdrop-blur-3xl transition-all duration-300 p-4">
       <PageHeader
