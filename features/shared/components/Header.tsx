@@ -109,16 +109,13 @@ const Header: React.FC = () => {
           </>
         ) : (
           <div className="flex items-center gap-3">
-            <Link
-              href={isAdmin ? "/admin/settings" : "/settings"}
-              title="تعديل الملف الشخصي"
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            <div
+              className="flex items-center gap-3"
             >
               <div className="text-right">
                 <p className="font-semibold text-[var(--text-primary)] hidden md:block">
                   {userName}
                 </p>
-                {/* <p className="text-lg text-[var(--text-tertiary)] hidden md:block">{userRole}</p> */}
               </div>
 
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-primary transition-all duration-300 border border-[var(--border-color)]">
@@ -133,11 +130,11 @@ const Header: React.FC = () => {
                   />
                 ) : (
                   <span className="text-primary font-bold text-lg">
-                    {userName?.charAt(0).toUpperCase()}
+                    {userName?.charAt(0).toUpperCase() || "U"}
                   </span>
                 )}
               </div>
-            </Link>
+            </div>
           </div>
         )}
       </div>

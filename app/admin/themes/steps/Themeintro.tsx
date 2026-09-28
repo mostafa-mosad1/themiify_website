@@ -330,18 +330,6 @@ const ThemeIntro: React.FC<ThemeIntroProps> = ({ step2, updateStep2 }) => {
           </div>
         )}
       </div>
-
-      {/* عنوان الزر */}
-      <div>
-        <label className={labelCls}>عنوان الزر</label>
-        <input
-          type="text"
-          value={buttonTitle}
-          onChange={(e) => updateStep2({ buttonTitle: e.target.value })}
-          className={inputCls + shadow + " flex items-center justify-center !w-1/2 h-12 !rounded-full"}
-          placeholder="ادخل عنوان مناسب للزر (اختياري)"
-        />
-      </div>
     </div>
   );
 };

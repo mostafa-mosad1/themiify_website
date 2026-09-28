@@ -116,10 +116,9 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
           </p>
 
           {/* رابط قراءة المزيد */}
-          <div className="flex items-center text-orange-500 font-semibold hover:text-orange-600 transition-colors">
-            <span>قراءة المقال كاملاً</span>
-            <span className="mr-2">←</span>
-          </div>
+          <Link href={`/essays/${essay.id}`} className="flex items-center underline text-orange-500 font-semibold hover:text-orange-600 transition-colors">
+            قراءة المقال كاملاً
+          </Link>
         </div>
       </Link>
     </motion.div>
