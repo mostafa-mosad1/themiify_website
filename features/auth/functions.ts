@@ -9,13 +9,16 @@ const listeners = new Set<(state: UserData) => void>();
 export function isValidToken(val: string | null | undefined): boolean {
   if (!val) return false;
   const str = String(val).trim();
-  return str !== "" && str !== "undefined" && str !== "null" && str !== "[object Object]";
+  return (
+    str !== "" &&
+    str !== "undefined" &&
+    str !== "null" &&
+    str !== "[object Object]"
+  );
 }
 
 export function getCookie(name: string): string | null {
-  const match = document.cookie.match(
-    new RegExp(`(?:^|;\\s*)${name}=([^;]+)`),
-  );
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
@@ -66,18 +69,24 @@ export function parseUserDataFromStorage(): UserData {
         );
         const isAdmin = Boolean(
           isSuperAdmin ||
-            parsed.isAdmin ||
-            parsed.is_admin ||
-            parsed.role === "admin",
+          parsed.isAdmin ||
+          parsed.is_admin ||
+          parsed.role === "admin",
         );
         const userRole = isSuperAdmin
           ? "super_admin"
-          : (parsed.userRole || parsed.role || (isAdmin ? "admin" : "user"));
+          : parsed.userRole || parsed.role || (isAdmin ? "admin" : "user");
         const userEmail = (parsed.userEmail || parsed.email || "").trim();
         const userName =
           parsed.userName ||
           parsed.name ||
-          (isSuperAdmin ? "سوبر أدمن" : (isAdmin ? "أدمن" : (userEmail ? userEmail.split("@")[0] : "مستخدم")));
+          (isSuperAdmin
+            ? "سوبر أدمن"
+            : isAdmin
+              ? "أدمن"
+              : userEmail
+                ? userEmail.split("@")[0]
+                : "مستخدم");
 
         const isLoggedIn = hasValidToken && Boolean(userEmail || hasValidToken);
 

@@ -14,12 +14,16 @@ export async function fetchThemes(params?: {
     const query = new URLSearchParams();
     if (params?.per_page) query.append("per_page", String(params.per_page));
     if (params?.page) query.append("page", String(params.page));
-    if (params?.category_id) query.append("category_id", String(params.category_id));
-    if (params?.platform_id) query.append("platform_id", String(params.platform_id));
+    if (params?.category_id)
+      query.append("category_id", String(params.category_id));
+    if (params?.platform_id)
+      query.append("platform_id", String(params.platform_id));
     if (params?.search) query.append("search", params.search);
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
-    const res = await apiClient<IThemesPagination | ITheme[] | { data: ITheme[] }>(`/themes${queryString}`);
+    const res = await apiClient<
+      IThemesPagination | ITheme[] | { data: ITheme[] }
+    >(`/themes${queryString}`);
 
     if (res.success && res.data) {
       if (Array.isArray(res.data)) {
@@ -29,7 +33,10 @@ export async function fetchThemes(params?: {
         return { themes: (res.data as any).data, pagination: res.data as any };
       }
       if (Array.isArray((res.data as any).themes)) {
-        return { themes: (res.data as any).themes, pagination: res.data as any };
+        return {
+          themes: (res.data as any).themes,
+          pagination: res.data as any,
+        };
       }
     }
     return { themes: [] };
@@ -47,25 +54,33 @@ export async function fetchThemeById(
     const rawId = String(id).trim();
     const decodedId = decodeURIComponent(rawId);
 
-    const endpoint = token ? `/admin/themes/${encodeURIComponent(rawId)}` : `/themes/${encodeURIComponent(rawId)}`;
+    const endpoint = token
+      ? `/admin/themes/${encodeURIComponent(rawId)}`
+      : `/themes/${encodeURIComponent(rawId)}`;
     const res = await apiClient<any>(endpoint, { silent: true }, token);
 
     if (res.success && res.data) {
       if (res.data.theme && typeof res.data.theme === "object") {
         return {
           ...res.data.theme,
-          related_themes: Array.isArray(res.data.related_themes) ? res.data.related_themes : [],
+          related_themes: Array.isArray(res.data.related_themes)
+            ? res.data.related_themes
+            : [],
         } as ITheme;
       }
-      if (res.data.data && typeof res.data.data === "object" && !Array.isArray(res.data.data)) {
+      if (
+        res.data.data &&
+        typeof res.data.data === "object" &&
+        !Array.isArray(res.data.data)
+      ) {
         const themeObj = res.data.data.theme || res.data.data;
         return {
           ...themeObj,
           related_themes: Array.isArray(res.data.data.related_themes)
             ? res.data.data.related_themes
             : Array.isArray(res.data.related_themes)
-            ? res.data.related_themes
-            : [],
+              ? res.data.related_themes
+              : [],
         } as ITheme;
       }
       if (res.data.id) {
@@ -73,28 +88,39 @@ export async function fetchThemeById(
       }
     }
 
-    const fallbackEndpoint = token ? `/themes/${encodeURIComponent(rawId)}` : `/admin/themes/${encodeURIComponent(rawId)}`;
+    const fallbackEndpoint = token
+      ? `/themes/${encodeURIComponent(rawId)}`
+      : `/admin/themes/${encodeURIComponent(rawId)}`;
     const fallbackRes = await apiClient<any>(
       fallbackEndpoint,
       { silent: true },
       token,
     );
     if (fallbackRes.success && fallbackRes.data) {
-      if (fallbackRes.data.theme && typeof fallbackRes.data.theme === "object") {
+      if (
+        fallbackRes.data.theme &&
+        typeof fallbackRes.data.theme === "object"
+      ) {
         return {
           ...fallbackRes.data.theme,
-          related_themes: Array.isArray(fallbackRes.data.related_themes) ? fallbackRes.data.related_themes : [],
+          related_themes: Array.isArray(fallbackRes.data.related_themes)
+            ? fallbackRes.data.related_themes
+            : [],
         } as ITheme;
       }
-      if (fallbackRes.data.data && typeof fallbackRes.data.data === "object" && !Array.isArray(fallbackRes.data.data)) {
+      if (
+        fallbackRes.data.data &&
+        typeof fallbackRes.data.data === "object" &&
+        !Array.isArray(fallbackRes.data.data)
+      ) {
         const themeObj = fallbackRes.data.data.theme || fallbackRes.data.data;
         return {
           ...themeObj,
           related_themes: Array.isArray(fallbackRes.data.data.related_themes)
             ? fallbackRes.data.data.related_themes
             : Array.isArray(fallbackRes.data.related_themes)
-            ? fallbackRes.data.related_themes
-            : [],
+              ? fallbackRes.data.related_themes
+              : [],
         } as ITheme;
       }
       if (fallbackRes.data.id) {
@@ -134,23 +160,26 @@ export async function fetchAdminThemes(
     const query = new URLSearchParams();
     if (params?.per_page) query.append("per_page", String(params.per_page));
     if (params?.page) query.append("page", String(params.page));
-    if (params?.category_id) query.append("category_id", String(params.category_id));
-    if (params?.platform_id) query.append("platform_id", String(params.platform_id));
+    if (params?.category_id)
+      query.append("category_id", String(params.category_id));
+    if (params?.platform_id)
+      query.append("platform_id", String(params.platform_id));
     if (params?.search) query.append("search", params.search);
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
-    const res = await apiClient<IThemesPagination | ITheme[] | { data: ITheme[] }>(
-      `/admin/themes${queryString}`,
-      {},
-      token,
-    );
+    const res = await apiClient<
+      IThemesPagination | ITheme[] | { data: ITheme[] }
+    >(`/admin/themes${queryString}`, {}, token);
     if (res.success && res.data) {
       if (Array.isArray(res.data)) return { themes: res.data };
       if (Array.isArray((res.data as any).data)) {
         return { themes: (res.data as any).data, pagination: res.data as any };
       }
       if (Array.isArray((res.data as any).themes)) {
-        return { themes: (res.data as any).themes, pagination: res.data as any };
+        return {
+          themes: (res.data as any).themes,
+          pagination: res.data as any,
+        };
       }
     }
     const fallback = await fetchThemes(params);
@@ -165,7 +194,12 @@ export async function fetchAdminThemes(
 export async function createAdminTheme(
   formData: FormData,
   token?: string | null,
-): Promise<{ success: boolean; data?: ITheme; error?: string; message?: string }> {
+): Promise<{
+  success: boolean;
+  data?: ITheme;
+  error?: string;
+  message?: string;
+}> {
   try {
     const res = await apiClient<ITheme>(
       "/admin/themes",
@@ -194,7 +228,12 @@ export async function updateAdminTheme(
   id: string | number,
   formData: FormData,
   token?: string | null,
-): Promise<{ success: boolean; data?: ITheme; error?: string; message?: string }> {
+): Promise<{
+  success: boolean;
+  data?: ITheme;
+  error?: string;
+  message?: string;
+}> {
   try {
     const res = await apiClient<ITheme>(
       `/admin/themes/${id}`,

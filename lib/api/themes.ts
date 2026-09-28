@@ -1,4 +1,9 @@
-export type { ITheme, IThemeCategory, IThemePlatform, IThemesPagination } from "@/features/themes/types";
+export type {
+  ITheme,
+  IThemeCategory,
+  IThemePlatform,
+  IThemesPagination,
+} from "@/features/themes/types";
 export {
   fetchThemes,
   fetchThemeById,
@@ -7,4 +12,3 @@ export {
   updateAdminTheme,
   deleteAdminTheme,
 } from "@/features/themes/functions";
-
