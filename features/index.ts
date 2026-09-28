@@ -1,0 +1,12 @@
+export * as authFeature from "./auth";
+export * as themesFeature from "./themes";
+export * as essaysFeature from "./essays";
+export * as supportFeature from "./support";
+export * as feedbackFeature from "./feedback";
+export * as settingsFeature from "./settings";
+export * as categoriesFeature from "./categories";
+export * as platformsFeature from "./platforms";
+export * as adminsFeature from "./admins";
+export * as logsFeature from "./logs";
+export * as homeFeature from "./home";
+export * as sharedFeature from "./shared";

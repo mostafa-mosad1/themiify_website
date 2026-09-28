@@ -213,6 +213,11 @@ export default function EditEssayClient({
       return;
     }
 
+    if (description.trim().length > 255) {
+      toast.error(`الوصف الفرعي طويل جداً (${description.trim().length} حرف). الحد الأقصى المسموح به حالياً لقاعدة البيانات هو 255 حرفاً.`);
+      return;
+    }
+
     const editorHtml = (quill ? quill.root.innerHTML : "") || content;
     const editorText = quill ? quill.getText().trim() : "";
     if (!editorText && !editorHtml.trim()) {
@@ -370,17 +375,35 @@ export default function EditEssayClient({
 
         {/* ─── Row 2: Short Description (وصف فرعي للمقالة *) ────────── */}
         <div>
-          <label className="block text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
-            وصف فرعي للمقالة <span className="text-red-500">*</span>
-          </label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200">
+              وصف فرعي للمقالة <span className="text-red-500">*</span>
+            </label>
+            <span
+              className={`text-[11px] font-medium transition-colors ${
+                description.length > 255 ? "text-red-500 font-bold" : "text-gray-400"
+              }`}
+            >
+              {description.length} / 255 حرف
+            </span>
+          </div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            placeholder="ادخل وصفك هنا... (لا يزيد عن 500 كلمه)"
+            placeholder="ادخل وصفاً موجزاً للمقالة هنا... (الحد الأقصى 255 حرف)"
             required
-            className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl p-4 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-[inset_0px_1px_2px_0px_rgba(0,0,0,0.04)] resize-none"
+            className={`w-full bg-white dark:bg-zinc-800 border rounded-2xl p-4 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all shadow-[inset_0px_1px_2px_0px_rgba(0,0,0,0.04)] resize-none ${
+              description.length > 255
+                ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
+                : "border-gray-200 dark:border-zinc-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+            }`}
           />
+          {description.length > 255 && (
+            <p className="text-[11px] text-red-500 mt-1 font-medium">
+              ⚠️ تنبيه: تجاوزت الحد المسموح لقاعدة البيانات (255 حرفاً)، يرجى اختصار الوصف لتجنب فشل الإرسال.
+            </p>
+          )}
         </div>
 
         {/* ─── Row 4: Image Upload Dropzone (صورة المقالة *) ────────── */}
