@@ -45,7 +45,7 @@ interface Platform {
   id: string;
   name: string;
 }
-
+ 
 // ─── Menu Config ─────────────────────────────────────────────────────────────
 
 const MENU_ITEMS: MenuItem[] = [
