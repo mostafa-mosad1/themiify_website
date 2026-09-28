@@ -627,7 +627,7 @@ export default function SupportPageUI() {
           </div>
         </div>
       )}
-      <div className="flex flex-col gap-4 w-11/12 mx-auto">
+      <div className="flex flex-col gap-4">
         {/* Header */}
         <div className="head bg-glass px-10 py-6 rounded-2xl shadow-sm flex items-center justify-between relative md:mt-16">
           <div className="content w-3/5 md:w-3/4">

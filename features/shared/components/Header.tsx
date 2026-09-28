@@ -76,60 +76,60 @@ const Header: React.FC = () => {
         </Link>
       </div>
 
-      <div className="header-btn hidden items-center gap-2 md:flex md:gap-4">
-        {/* Theme Toggle - Top Right */}
-        {/* <ThemeToggle /> */}
-        <Button className="rounded-full" url="https://themiify.com/">
-          العودة للموقع
-        </Button>
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* Buttons (Hidden on mobile) */}
+        <div className="hidden items-center gap-2 md:flex md:gap-4">
+          <Button className="rounded-full" url="https://themiify.com/">
+            العودة للموقع
+          </Button>
 
-        {hasAdminAccess ? (
-          isAdminSection ? (
-            <Button className="rounded-full" url="/themes">
-              تصفح الثيمات
-            </Button>
-          ) : (
-            <Button className="rounded-full" url="/admin">
-              الداشبورد
-            </Button>
-          )
-        ) : null}
+          {hasAdminAccess ? (
+            isAdminSection ? (
+              <Button className="rounded-full" url="/themes">
+                تصفح الثيمات
+              </Button>
+            ) : (
+              <Button className="rounded-full" url="/admin">
+                الداشبورد
+              </Button>
+            )
+          ) : null}
+        </div>
 
+        {/* User Info / Login Avatar (Always visible on mobile & desktop) */}
         {!isLoggedIn ? (
-          <>
-            <span className="text-[var(--text-secondary)] font-medium hidden md:block">
+          <div className="flex items-center gap-2">
+            <span className="text-[var(--text-secondary)] font-medium text-xs md:text-sm">
               زائر
             </span>
             <Link href="/login" className="flex items-center gap-2">
               <FaUser
-                size={40}
-                className="bg-[var(--bg-tertiary)] rounded-full p-2 text-[var(--text-secondary)] transition-colors duration-300"
+                size={36}
+                className="bg-[var(--bg-tertiary)] rounded-full p-2 text-[var(--text-secondary)] transition-colors duration-300 md:w-10 md:h-10"
               />
             </Link>
-          </>
+          </div>
         ) : (
           <div className="flex items-center gap-3">
-            <div
-              className="flex items-center gap-3"
-            >
+            <div className="flex items-center gap-2 md:gap-3">
               <div className="text-right">
-                <p className="font-semibold text-[var(--text-primary)] hidden md:block">
+                <p className="font-semibold text-[var(--text-primary)] text-xs sm:text-sm md:text-base">
                   {userName}
                 </p>
               </div>
 
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-primary transition-all duration-300 border border-[var(--border-color)]">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-primary transition-all duration-300 border border-[var(--border-color)]">
                 {userAvatar ? (
                   <Image
                     src={userAvatar}
-                    alt={userName}
+                    alt={userName || "User"}
                     width={40}
                     height={40}
                     className="w-full h-full object-cover"
                     unoptimized
                   />
                 ) : (
-                  <span className="text-primary font-bold text-lg">
+                  <span className="text-primary font-bold text-base md:text-lg">
                     {userName?.charAt(0).toUpperCase() || "U"}
                   </span>
                 )}

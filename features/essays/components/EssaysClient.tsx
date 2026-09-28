@@ -84,7 +84,7 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
             <img
               src={img}
               alt={titleText}
-              className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 e.currentTarget.nextElementSibling?.classList.remove("hidden");
@@ -236,7 +236,7 @@ function EssaysContent() {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto w-[calc(100%-1rem)] max-w-7xl rounded-3xl bg-glass px-3 py-3 sm:px-4 md:px-6">
+      <div className="  rounded-3xl bg-glass px-3 py-3 sm:px-4 md:px-6">
         <div className="mb-4 flex flex-col gap-3 py-3 md:mb-6 md:flex-row md:items-center md:justify-between">
           {/* Header */}
           <motion.div

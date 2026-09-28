@@ -226,6 +226,37 @@ textarea::placeholder {
   color: white;
 }
 
+/* STEPPER TIMELINE STYLES - DEBOSSED INSET SHADOW */
+.step-circle {
+  background: #ffffff;
+  border-radius: 9999px;
+  box-shadow: 
+    inset 2px 5px 10px rgba(14, 19, 44, 0.16),
+    inset -2px -4px 8px rgba(255, 255, 255, 0.9);
+  color: #0e132c;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-circle:hover {
+  box-shadow: 
+    inset 2px 6px 12px rgba(14, 19, 44, 0.22),
+    inset -2px -4px 8px rgba(255, 255, 255, 1);
+}
+
+html.dark .step-circle {
+  background: #141b2d;
+  box-shadow: 
+    inset 2px 5px 10px rgba(0, 0, 0, 0.7),
+    inset -2px -4px 8px rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+html.dark .step-circle:hover {
+  box-shadow: 
+    inset 2px 6px 12px rgba(0, 0, 0, 0.8),
+    inset -2px -4px 8px rgba(255, 255, 255, 0.1);
+}
+
 /*CARD BUTTONS STYLES */
 .activeCard {
   background: linear-gradient(180deg, #f26b21 100%, #f26b21 30%);

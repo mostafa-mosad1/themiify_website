@@ -329,7 +329,7 @@ const PageHeader = ({
 }: PageHeaderProps) => (
   <div className="mb-8">
     <div className="flex justify-between lg:items-center gap-4 flex-1 flex-col lg:flex-row">
-      <h1 className="md:text-xl text-lg  font-bold text-black  dark:text-white flex-1">
+      <h1 className="md:text-xl text-lg  font-bold !text-black  dark:text-white flex-1">
         تصفح الثيمات حسب القطاع
       </h1>
 
@@ -349,10 +349,7 @@ const PageHeader = ({
 
     {/* Category filter */}
     {categories.length > 0 && (
-      <div className="CategoryFilter mt-3">
-        <h3 className="md:text-xl text-lg font-bold text-black  dark:text-white flex-1">
-          التصنيفات
-        </h3>
+      <div className="CategoryFilter py-6">
         <CategoryFilterBar
           categories={categories}
           selectedCategory={selectedCategory}
@@ -639,7 +636,7 @@ const PageContent = () => {
   // Renders the complete page UI including headers, filter results, and pagination.
 
   return (
-    <section className=" mx-auto p-6 bg-glass min-h-[85vh]">
+    <section className=" mx-auto p-6  min-h-[85vh]">
       <div className="md:my-4 my-2 ">
         <p className="md:text-2xl text-xl font-bold text-black  dark:text-white mb-2">
           اكتشف مجموعة الثيمات المصممة خصيصًا لمتجرك
@@ -647,8 +644,9 @@ const PageContent = () => {
         <p className="text-black  dark:text-white text-lg font-normal max-w-3xl">
           اختَر الثيم اللي يناسب نشاطك ويقدّم تجربة تسوّق مميزة
         </p>
+        
       </div>
-
+      <div className="border-white/80 bg-glass shadow-sm backdrop-blur-3xl transition-all duration-300 p-4">
       <PageHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -714,6 +712,8 @@ const PageContent = () => {
           />
         )}
       </main>
+      </div>
+
     </section>
   );
 };
