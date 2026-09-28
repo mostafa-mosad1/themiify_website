@@ -42,7 +42,7 @@ const Header: React.FC = () => {
   const toggleSidebar = () => {
     const sidebar = document.querySelector(".resSideBar");
     if (sidebar) {
-      sidebar.classList.add("active");
+      sidebar.classList.toggle("active");
     }
   };
 
@@ -51,17 +51,17 @@ const Header: React.FC = () => {
       <div className="flex items-center gap-2">
         <TiThMenu
           size={24}
-          className="block cursor-pointer text-[var(--text-primary)] md:hidden"
+          className="block cursor-pointer text-[var(--text-primary)] lg:hidden"
           onClick={toggleSidebar}
         />
 
-        <p className="hidden text-2xl font-bold text-[var(--text-primary)] md:block">
+        <p className="hidden text-2xl font-bold text-[var(--text-primary)] lg:block">
           {headerTitle}
         </p>
         {/* Logo */}
         <Link
           href={isAdmin ? "/admin" : "/"}
-          className="flex items-center gap-2 md:hidden"
+          className="flex items-center gap-2 lg:hidden"
         >
           <Image
             src="/favicon.ico"
