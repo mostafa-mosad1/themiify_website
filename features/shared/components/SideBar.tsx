@@ -135,7 +135,7 @@ const MENU_ITEMS: MenuItem[] = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const MOBILE_BREAKPOINT = 768; // px — matches Tailwind's `md`
+const MOBILE_BREAKPOINT = 1024; // px — matches Tailwind's `lg`
 
 const isMobileScreen = (): boolean =>
   typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
@@ -508,7 +508,7 @@ const SideBarContent: React.FC = () => {
 
   if (loading) {
     return (
-      <SidebarSkeleton className="md:w-[20%] xl:w-[15%] md:min-w-[250px] w-full h-[90vh] shadow-sm" />
+      <SidebarSkeleton className="lg:w-[20%] xl:w-[15%] lg:min-w-[250px] w-full h-[90vh] shadow-sm" />
     );
   }
 
@@ -516,7 +516,7 @@ const SideBarContent: React.FC = () => {
 
   return (
     <aside
-      className="md:w-[20%] xl:w-[15%] md:min-w-[250px] w-full shadow-sm flex flex-col rounded-2xl fixed md:sticky top-0 right-0 h-full md:h-auto md:self-start resSideBar z-50 !border-none md:bg-glass"
+      className="w-full h-full fixed top-0 right-0 z-50 flex flex-col rounded-2xl shadow-sm resSideBar !border-none lg:w-[20%] xl:w-[15%] lg:min-w-[250px] lg:sticky lg:top-0 lg:h-auto lg:self-start lg:bg-glass"
       role="navigation"
       aria-label="Sidebar navigation"
     >
@@ -524,11 +524,11 @@ const SideBarContent: React.FC = () => {
       <div
         role="presentation"
         onClick={closeSidebar}
-        className="sidBarOvelay w-full h-full fixed top-0 right-0 bg-[#00000045] block md:hidden transition-opacity duration-300"
+        className="sidBarOvelay w-full h-full fixed top-0 right-0 bg-[#00000045] block lg:hidden transition-opacity duration-300"
       />
 
       {/* Sidebar panel */}
-      <div className="w-[80%] md:w-full flex flex-col md:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] md:!bg-transparent z-50 h-full  md:h-[90vh]  md:rounded-2xl p-2 transition-transform duration-300 justify-between">
+      <div className="w-[80%] max-w-[320px] lg:w-full flex flex-col lg:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] lg:!bg-transparent z-50 h-full lg:h-[90vh] lg:rounded-2xl p-2 transition-transform duration-300 justify-between">
         {/* Header: logo + close button */}
         <div className="flex items-center justify-between mb-8 mt-4">
           <div
@@ -569,7 +569,7 @@ const SideBarContent: React.FC = () => {
             type="button"
             onClick={closeSidebar}
             aria-label="Close sidebar"
-            className="md:hidden text-rose-800 hover:bg-[var(--bg-tertiary)] p-2 rounded-lg transition-all duration-300 cursor-pointer"
+            className="lg:hidden text-rose-800 hover:bg-[var(--bg-tertiary)] p-2 rounded-lg transition-all duration-300 cursor-pointer"
           >
             <IoClose size={24} />
           </button>

@@ -21,6 +21,17 @@ import {
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
 import { fetchAdminFeedbacks, updateAdminFeedback, deleteAdminFeedback } from "@/lib/api/feedbacks";
+import {
+  FilterStatus,
+  FilterRating,
+  FilterProfession,
+  FEEDBACK_STATUS_OPTIONS,
+  FEEDBACK_RATING_OPTIONS,
+  FEEDBACK_PROFESSION_OPTIONS,
+  getFeedbackStatusColor,
+  getFeedbackRatingColor,
+  FEEDBACK_EXCEL_COL_WIDTHS,
+} from "../data";
 
 // تعريف نوع التقييم
 interface Feedback {
@@ -44,24 +55,6 @@ interface Feedback {
   pageUrl: string;
   user_id?: string;
 }
-
-// خيارات التصفية
-type FilterStatus = "الكل" | "جديد" | "تم المراجعة" | "تم التواصل";
-type FilterRating =
-  | "الكل"
-  | "ممتاز"
-  | "جيد جدًا"
-  | "جيد"
-  | "مقبول"
-  | "غير راضٍ";
-type FilterProfession =
-  | "الكل"
-  | "مبرمج"
-  | "مصمم"
-  | "تاجر"
-  | "مسوق"
-  | "صانع محتوى"
-  | "أخرى";
 
 const FeedbacksAdminPage = () => {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
@@ -175,24 +168,7 @@ const FeedbacksAdminPage = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Feedbacks");
 
     // تنسيق الأعمدة (عرض أفضل)
-    const colWidths = [
-      { wch: 12 }, // التاريخ
-      { wch: 20 }, // الاسم
-      { wch: 15 }, // رقم الموبايل
-      { wch: 25 }, // البريد الإلكتروني
-      { wch: 30 }, // لينك المتجر
-      { wch: 15 }, // المهنة
-      { wch: 12 }, // التقييم
-      { wch: 40 }, // التعليق
-      { wch: 10 }, // التوصية
-      { wch: 12 }, // الحالة
-      { wch: 10 }, // واجه صعوبة
-      { wch: 40 }, // تفاصيل الصعوبة
-      { wch: 40 }, // اقتراحات التحسين
-      { wch: 40 }, // ملاحظات المسؤول
-      { wch: 12 }, // تاريخ التحديث
-    ];
-    ws['!cols'] = colWidths;
+    ws['!cols'] = FEEDBACK_EXCEL_COL_WIDTHS;
 
     // تصدير الملف
     XLSX.writeFile(wb, `feedbacks-${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -282,36 +258,10 @@ const FeedbacksAdminPage = () => {
   };
 
   // الحصول على لون حالة التقييم
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "جديد":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "تم المراجعة":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "تم التواصل":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
+  const getStatusColor = getFeedbackStatusColor;
 
   // الحصول على لون التقييم
-  const getRatingColor = (rating: string) => {
-    switch (rating) {
-      case "ممتاز":
-        return "text-green-600";
-      case "جيد جدًا":
-        return "text-blue-600";
-      case "جيد":
-        return "text-yellow-600";
-      case "مقبول":
-        return "text-orange-600";
-      case "غير راضٍ":
-        return "text-red-600";
-      default:
-        return "text-gray-600";
-    }
-  };
+  const getRatingColor = getFeedbackRatingColor;
 
   // تصفية وبحث
   const getFilteredFeedbacks = () => {
@@ -463,10 +413,11 @@ const FeedbacksAdminPage = () => {
             onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
             className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500"
           >
-            <option value="الكل">جميع الحالات</option>
-            <option value="جديد">جديد</option>
-            <option value="تم المراجعة">تم المراجعة</option>
-            <option value="تم التواصل">تم التواصل</option>
+            {FEEDBACK_STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status === "الكل" ? "جميع الحالات" : status}
+              </option>
+            ))}
           </select>
 
           {/* Filter by Rating */}
@@ -475,12 +426,11 @@ const FeedbacksAdminPage = () => {
             onChange={(e) => setFilterRating(e.target.value as FilterRating)}
             className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500"
           >
-            <option value="الكل">جميع التقييمات</option>
-            <option value="ممتاز">ممتاز</option>
-            <option value="جيد جدًا">جيد جدًا</option>
-            <option value="جيد">جيد</option>
-            <option value="مقبول">مقبول</option>
-            <option value="غير راضٍ">غير راضٍ</option>
+            {FEEDBACK_RATING_OPTIONS.map((rating) => (
+              <option key={rating} value={rating}>
+                {rating === "الكل" ? "جميع التقييمات" : rating}
+              </option>
+            ))}
           </select>
 
           {/* Filter by Profession */}
@@ -491,12 +441,11 @@ const FeedbacksAdminPage = () => {
             }
             className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500"
           >
-            <option value="الكل">جميع المهن</option>
-            <option value="مبرمج">مبرمج</option>
-            <option value="مصمم">مصمم</option>
-            <option value="صاحب المتجر">صاحب المتجر</option>
-            <option value="ميدياباير">ميدياباير</option>
-            <option value="SEO">SEO</option>
+            {FEEDBACK_PROFESSION_OPTIONS.map((prof) => (
+              <option key={prof} value={prof}>
+                {prof === "الكل" ? "جميع المهن" : prof}
+              </option>
+            ))}
           </select>
         </div>
       </div>

@@ -99,6 +99,7 @@ export default function EditEssayClient({
       }
     }
   }, [categories, categoryId, initialData.category]);
+
   const [existingImage, setExistingImage] = useState<string | null>(
     initialData.image_url || null,
   );
@@ -123,6 +124,21 @@ export default function EditEssayClient({
     placeholder: "أضف تفاصيل المقال هنا...",
     theme: "snow",
   });
+
+  // مزامنة البيانات عند تحديث initialData من الخادم
+  useEffect(() => {
+    setTitle(initialData.title || initialData.name || "");
+    setDescription(initialData.description || "");
+    setContent(initialData.content || "");
+    setImagePreview(initialData.image_url || null);
+    setExistingImage(initialData.image_url || null);
+    if (initialData.category_id) {
+      setCategoryId(String(initialData.category_id));
+    }
+    if (quill && initialData.content) {
+      quill.root.innerHTML = initialData.content;
+    }
+  }, [initialData, quill]);
 
   // Set initial content in Quill editor
   useEffect(() => {
@@ -265,12 +281,16 @@ export default function EditEssayClient({
 
       let res;
       try {
-        res = await updateAdminBlog(initialData.id, formData, token);
-      } catch (directErr) {
         if (onSave) {
           res = await onSave(formData);
         } else {
-          throw directErr;
+          res = await updateAdminBlog(initialData.id, formData, token);
+        }
+      } catch (saveErr) {
+        if (onSave) {
+          res = await updateAdminBlog(initialData.id, formData, token);
+        } else {
+          throw saveErr;
         }
       }
 
@@ -304,8 +324,8 @@ export default function EditEssayClient({
         invalidateCache("essays");
 
         toast.success("✅ تم تعديل المقالة بنجاح!", { id: toastId });
-        router.push("/admin/essays");
         router.refresh();
+        router.push("/admin/essays");
       } else {
         toast.error(res.error || "حدث خطأ أثناء تعديل المقالة", { id: toastId });
       }

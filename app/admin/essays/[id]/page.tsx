@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { FaArrowRight, FaEdit, FaCalendar } from "react-icons/fa";
-import { fetchAdminBlogById } from "@/lib/api/blogs";
+import { fetchAdminBlogById, formatEssayDate } from "@/features/essays";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -34,20 +34,6 @@ export default async function EssayDetailPage({
   if (!blog) {
     notFound();
   }
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("ar-EG", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
 
   return (
     <div
@@ -85,7 +71,7 @@ export default async function EssayDetailPage({
         {/* Date */}
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <FaCalendar className="text-orange-500" />
-          <span>{formatDate(blog.created_at)}</span>
+          <span>{formatEssayDate(blog.created_at)}</span>
         </div>
 
         {/* Image */}
