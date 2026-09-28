@@ -14,6 +14,15 @@ let cachedUserState: UserData | null = null;
 export const useUserData = () => {
   const [userData, setUserData] = useState<UserData>(() => {
     if (cachedUserState) return cachedUserState;
+    if (typeof window !== "undefined") {
+      try {
+        const parsed = parseUserDataFromStorage();
+        if (parsed.isLoggedIn) {
+          cachedUserState = parsed;
+          return parsed;
+        }
+      } catch {}
+    }
     return DEFAULT_GUEST;
   });
 
@@ -22,9 +31,10 @@ export const useUserData = () => {
   }, []);
 
   useEffect(() => {
-    if (!cachedUserState) {
-      cachedUserState = parseUserDataFromStorage();
-    }
+    // Always sync fresh state on client mount
+    const current = parseUserDataFromStorage();
+    cachedUserState = current;
+    setUserData(current);
 
     const handleChange = (newState: UserData) => {
       setUserData(newState);
@@ -38,7 +48,8 @@ export const useUserData = () => {
         e.key === "userData" ||
         e.key === "authToken" ||
         e.key === "userRole" ||
-        e.key === "isAdmin"
+        e.key === "isAdmin" ||
+        e.key === "localAuthSession"
       ) {
         mutateUserData();
       }

@@ -91,6 +91,8 @@ export default function LoginClient() {
         }
         
         const sessionPayload = {
+          userName: user?.name || user?.userName || "",
+          userAvatar: user?.avatar || "",
           email: user?.email || formData.email.trim(),
           isAdmin: isUserAdmin,
           is_super_admin: isSuperAdmin,
@@ -98,6 +100,20 @@ export default function LoginClient() {
           isLoggedIn: true,
         };
         document.cookie = `localAuthSession=${encodeURIComponent(JSON.stringify(sessionPayload))}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+
+        try {
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("bearer_token", token);
+          if (isUserAdmin) localStorage.setItem("adminToken", token);
+          localStorage.setItem("localAuthSession", JSON.stringify(sessionPayload));
+          localStorage.setItem(
+            "userData",
+            JSON.stringify({
+              ...user,
+              ...sessionPayload,
+            }),
+          );
+        } catch {}
 
       }
 

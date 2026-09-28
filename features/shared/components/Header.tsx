@@ -26,13 +26,11 @@ const menuItems = [
 
 const Header: React.FC = () => {
   const pathname = usePathname();
-  const { isAdmin, userName, userRole, isLoggedIn, userAvatar, loading } =
+  const { isAdmin, isSuperAdmin, userName, userRole, isLoggedIn, userAvatar, loading } =
     useUserData();
-  const isThemesSection =
-    pathname === "/themes" ||
-    pathname.startsWith("/themes/") ||
-    pathname === "/admin/themes" ||
-    pathname.startsWith("/admin/themes/");
+  const isAdminSection = pathname.startsWith("/admin");
+  const hasAdminAccess =
+    isAdmin || isSuperAdmin || userRole === "admin" || userRole === "super_admin";
 
   // 🔥 نحدد الصفحة الحالية من المينيو مباشرة
   const currentItem = menuItems.find(
@@ -85,14 +83,16 @@ const Header: React.FC = () => {
           العودة للموقع
         </Button>
 
-        {isAdmin && !isThemesSection ? (
-          <Button className="rounded-full" url="/themes">
-            تصفح الثيمات
-          </Button>
-        ) : isLoggedIn ? (
-          <Button className="rounded-full" url="/admin">
-            الدش بورد
-          </Button>
+        {hasAdminAccess ? (
+          isAdminSection ? (
+            <Button className="rounded-full" url="/themes">
+              تصفح الثيمات
+            </Button>
+          ) : (
+            <Button className="rounded-full" url="/admin">
+              الداشبورد
+            </Button>
+          )
         ) : null}
 
         {!isLoggedIn ? (

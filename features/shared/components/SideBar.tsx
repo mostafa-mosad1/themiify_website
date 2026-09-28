@@ -628,22 +628,24 @@ const SideBarContent: React.FC = () => {
             العودة للموقع
           </Link>
 
-          {isAdmin && !isThemesSection ? (
-            <Link
-              href="/themes"
-              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-secondary md:hidden"
-              aria-label="تصفح الثيمات"
-            >
-              تصفح الثيمات
-            </Link>
-          ) : isLoggedIn ? (
-            <Link
-              href="/admin"
-              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary md:hidden"
-              aria-label="الدش بورد"
-            >
-              الدش بورد
-            </Link>
+          {hasAdminAccess ? (
+            isAdminSection ? (
+              <Link
+                href="/themes"
+                className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-secondary md:hidden"
+                aria-label="تصفح الثيمات"
+              >
+                تصفح الثيمات
+              </Link>
+            ) : (
+              <Link
+                href="/admin"
+                className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary md:hidden"
+                aria-label="الداشبورد"
+              >
+                الداشبورد
+              </Link>
+            )
           ) : null}
 
           {isLoggedIn ? (

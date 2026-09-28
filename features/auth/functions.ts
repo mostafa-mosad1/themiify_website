@@ -18,8 +18,20 @@ export function isValidToken(val: string | null | undefined): boolean {
 }
 
 export function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
-  return match ? decodeURIComponent(match[1]) : null;
+  if (typeof document === "undefined") return null;
+  try {
+    const match = document.cookie.match(
+      new RegExp(`(?:^|;\\s*)${name}=([^;]+)`),
+    );
+    if (!match) return null;
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
+    }
+  } catch {
+    return null;
+  }
 }
 
 export function parseUserDataFromStorage(): UserData {
@@ -28,36 +40,36 @@ export function parseUserDataFromStorage(): UserData {
   }
 
   try {
-    for (const key of [
-      "authToken",
-      "adminToken",
-      "bearer_token",
-      "token",
-      "access_token",
-      "jwt",
-      "isAdmin",
-      "userRole",
-      "userEmail",
-      "userData",
-      "localAuthSession",
-    ]) {
-      localStorage.removeItem(key);
-    }
-
     const rawToken =
       getCookie("authToken") ||
       getCookie("bearer_token") ||
-      getCookie("adminToken");
+      getCookie("adminToken") ||
+      (typeof localStorage !== "undefined"
+        ? localStorage.getItem("authToken") ||
+          localStorage.getItem("bearer_token") ||
+          localStorage.getItem("adminToken") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("access_token")
+        : null);
     const hasValidToken = isValidToken(rawToken);
 
-    const cached = getCookie("localAuthSession");
+    let cached = getCookie("localAuthSession");
+    if (!cached && typeof localStorage !== "undefined") {
+      cached =
+        localStorage.getItem("localAuthSession") ||
+        localStorage.getItem("userData");
+    }
 
     if (cached) {
       let parsed: any = null;
       try {
         parsed = JSON.parse(cached);
       } catch {
-        parsed = null;
+        try {
+          parsed = JSON.parse(decodeURIComponent(cached));
+        } catch {
+          parsed = null;
+        }
       }
 
       if (parsed && typeof parsed === "object") {
@@ -88,7 +100,11 @@ export function parseUserDataFromStorage(): UserData {
                 ? userEmail.split("@")[0]
                 : "مستخدم");
 
-        const isLoggedIn = hasValidToken && Boolean(userEmail || hasValidToken);
+        const isLoggedIn = Boolean(
+          hasValidToken ||
+          parsed.isLoggedIn === true ||
+          userEmail !== ""
+        );
 
         if (isLoggedIn) {
           return {
@@ -106,10 +122,30 @@ export function parseUserDataFromStorage(): UserData {
     }
 
     if (hasValidToken) {
+      let storedRole = "user";
+      let storedEmail = "";
+      if (typeof localStorage !== "undefined") {
+        storedRole = localStorage.getItem("userRole") || "user";
+        storedEmail = localStorage.getItem("userEmail") || "";
+      }
+      const isSuper = storedRole === "super_admin";
+      const isAdmin = isSuper || storedRole === "admin";
+
       return {
         ...DEFAULT_GUEST,
+        isAdmin,
+        isSuperAdmin: isSuper,
+        userRole: storedRole,
         isLoggedIn: true,
-        userName: "مستخدم",
+        userName: isSuper
+          ? "سوبر أدمن"
+          : isAdmin
+            ? "أدمن"
+            : storedEmail
+              ? storedEmail.split("@")[0]
+              : "زائر",
+        userEmail: storedEmail,
+        loading: false,
       };
     }
 

@@ -68,6 +68,14 @@ export async function apiClient<T>(
       );
       if (match) authToken = decodeURIComponent(match[1]);
     }
+    if (!authToken && typeof localStorage !== "undefined") {
+      authToken =
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("bearer_token") ||
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("access_token");
+    }
   }
 
   const cacheKey = `${method}:${url}:${options.skipAuth ? "public" : authToken || "anon"}`;
