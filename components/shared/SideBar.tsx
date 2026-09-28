@@ -617,10 +617,10 @@ const SideBarContent: React.FC = () => {
           })}
         </ul>
 
-        <div className="mt-3 flex flex-col gap-2 border-t border-[var(--border-color)] pt-3 md:hidden">
+        <div className="mt-3 flex flex-col gap-2 border-t border-[var(--border-color)] pt-3 ">
           <Link
             href="https://themiify.com/"
-            className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary"
+            className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary md:hidden"
             aria-label="العودة للموقع"
           >
             العودة للموقع
@@ -629,7 +629,7 @@ const SideBarContent: React.FC = () => {
           {isAdmin && !isThemesSection ? (
             <Link
               href="/themes"
-              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-secondary"
+              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-secondary md:hidden"
               aria-label="تصفح الثيمات"
             >
               تصفح الثيمات
@@ -637,7 +637,7 @@ const SideBarContent: React.FC = () => {
           ) : isLoggedIn ? (
             <Link
               href="/admin"
-              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary"
+              className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary md:hidden"
               aria-label="الدش بورد"
             >
               الدش بورد
