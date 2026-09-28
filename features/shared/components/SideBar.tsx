@@ -528,7 +528,7 @@ const SideBarContent: React.FC = () => {
       />
 
       {/* Sidebar panel */}
-      <div className="w-[80%] max-w-[320px] lg:w-full flex flex-col lg:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] lg:!bg-transparent z-50 h-full lg:h-[90vh] lg:rounded-2xl p-2 transition-transform duration-300 justify-between">
+      <div className="w-[80%] max-w-[320px] lg:w-full flex flex-col border-white/80 bg-glass lg:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] lg:!bg-transparent z-50 h-full lg:h-[90vh] lg:rounded-2xl p-2 transition-transform duration-300 justify-between">
         {/* Header: logo + close button */}
         <div className="flex items-center justify-between mb-8 mt-4">
           <div

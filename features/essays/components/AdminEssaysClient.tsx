@@ -232,10 +232,10 @@ export default function AdminEssaysClient({
             <button
               key={String(tab.id)}
               onClick={() => handleTabChange(tab.id)}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 whitespace-nowrap select-none ${
                 isActive
-                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
-                  : "bg-gray-100/90 dark:bg-zinc-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                  ? "gradient-primary text-white shadow-md !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)]"
+                  : "bg-white dark:bg-zinc-800 !text-[var(--text-primary)] dark:!text-gray-200 hover:!bg-gray-50 dark:hover:!bg-zinc-700 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F]"
               }`}
             >
               {tab.name}

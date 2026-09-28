@@ -627,7 +627,7 @@ export default function SupportPageUI() {
           </div>
         </div>
       )}
-      <div className="flex flex-col gap-4 w-11/12 mx-auto">
+      <div className="flex flex-col gap-4">
         {/* Header */}
         <div className="head bg-glass px-10 py-6 rounded-2xl shadow-sm flex items-center justify-between relative md:mt-16">
           <div className="content w-3/5 md:w-3/4">
@@ -699,7 +699,7 @@ export default function SupportPageUI() {
           <div className="popular-questions bg-glass p-4 md:p-6 rounded-2xl shadow-sm flex-1 min-w-[280px]">
             <div className="flex items-center gap-3 mb-5">
               <Image src={faq} alt="faq" className="w-6 h-6" />
-              <h2 className="text-base md:text-2xl font-bold">
+              <h2 className="text-base md:text-2xl font-bold !text-black">
                 الأسئلة الشائعة
               </h2>
             </div>
@@ -716,10 +716,10 @@ export default function SupportPageUI() {
                     setSelectedCategoryId("all");
                     setOpenId(null);
                   }}
-                  className={`shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                  className={`shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 select-none cursor-pointer ${
                     selectedCategoryId === "all"
-                      ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25"
-                      : "bg-white/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:bg-orange-50 dark:hover:bg-zinc-700 hover:text-orange-600 dark:hover:text-orange-400"
+                      ? "gradient-primary text-white shadow-md !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)]"
+                      : "bg-white dark:bg-zinc-800 !text-[var(--text-primary)] dark:!text-gray-200 hover:!bg-gray-50 dark:hover:!bg-zinc-700 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F]"
                   }`}
                 >
                   الكل
@@ -734,10 +734,10 @@ export default function SupportPageUI() {
                         setSelectedCategoryId(isSelected ? "all" : cat.id);
                         setOpenId(null);
                       }}
-                      className={`shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      className={`shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 select-none cursor-pointer ${
                         isSelected
-                          ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25"
-                          : "bg-white/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:bg-orange-50 dark:hover:bg-zinc-700 hover:text-orange-600 dark:hover:text-orange-400"
+                          ? "gradient-primary text-white shadow-md !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)]"
+                          : "bg-white dark:bg-zinc-800 !text-[var(--text-primary)] dark:!text-gray-200 hover:!bg-gray-50 dark:hover:!bg-zinc-700 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F]"
                       }`}
                     >
                       {cat.name}
@@ -761,10 +761,10 @@ export default function SupportPageUI() {
                   return (
                     <div
                       key={item.id}
-                      className={`transition-all duration-300 ease-in-out overflow-hidden rounded-2xl border ${
+                      className={`transition-all duration-300 ease-in-out overflow-hidden rounded-2xl ${
                         isOpen
-                          ? "bg-[#0E132C0C] dark:bg-zinc-800/90 border-gray-200/90 dark:border-zinc-700 shadow-sm"
-                          : "bg-white/80 dark:bg-zinc-800/80 border-gray-100 dark:border-zinc-800 hover:border-gray-200 dark:hover:border-zinc-700 shadow-sm"
+                          ? "bg-[#eef2f6] dark:bg-zinc-800 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_8%),inset_-2px_-4px_10px_rgb(255_255_255_/_30%),inset_0_-1px_0px_#0E132C0F]"
+                          : "bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700/80 shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F]"
                       }`}
                     >
                       <button
@@ -809,7 +809,7 @@ export default function SupportPageUI() {
 
           {/* Contact Section */}
           <div className="contact bg-glass p-4 rounded-2xl shadow-sm w-full lg:w-1/3 h-fit">
-            <h2 className="text-base md:text-xl font-bold mb-5">
+            <h2 className="text-base md:text-xl font-bold mb-5 !text-black">
               تواصل معنا عن طريق:
             </h2>
             {socialLinksData.length === 0 ? (

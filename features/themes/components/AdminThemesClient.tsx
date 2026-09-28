@@ -433,8 +433,7 @@ const PageHeader = ({
     </div>
 
     {/* Category filter — platform-aware */}
-    <div className="CategoryFilter">
-      <h3>التصنيفات</h3>
+    <div className="CategoryFilter pt-6">
       <CategoryFilterBar
         categories={categories}
         selectedCategory={selectedCategory}

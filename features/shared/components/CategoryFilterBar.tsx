@@ -61,12 +61,12 @@ const CategoryFilterBar = ({
       {/* "All" button */}
       <Button
         variant="solid"
-        solidColor={selectedCategory === null ? "" : "#f3f4f6"}
-        className={`flex items-center justify-center rounded-full text-[11px] transition-all sm:text-xs md:text-sm ${
+        solidColor={selectedCategory === null ? "" : "var(--bg-secondary)"}
+        className={`flex items-center justify-center rounded-full text-[11px] transition-all select-none sm:text-xs md:text-sm ${
           selectedCategory === null
-            ? "gradient-primary text-white shadow-md"
-            : "bg-glass !text-gray-700 hover:!bg-gray-200"
-        } !px-2 py-2 sm:!px-3 md:!px-4 min-w-[76px] h-[38px] md:h-[42px] md:min-w-[90px]`}
+            ? "gradient-primary text-white shadow-md !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)]"
+            : "!text-[var(--text-primary)] hover:!bg-[var(--bg-tertiary)]"
+        } shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F] !px-2 py-2 sm:!px-3 md:!px-4 min-w-[76px] h-[38px] md:h-[42px] md:min-w-[90px]`}
         onClick={() => onSelectCategory(null)}
       >
         {allLabel}
@@ -81,12 +81,12 @@ const CategoryFilterBar = ({
           <Button
             key={category.id}
             variant="solid"
-            solidColor={isActive ? "" : "#f3f4f6"}
-            className={`flex items-center justify-center rounded-full text-[11px] transition-all sm:text-xs md:text-sm ${
+            solidColor={isActive ? "" : "var(--bg-secondary)"}
+            className={`flex items-center justify-center rounded-full text-[11px] transition-all select-none sm:text-xs md:text-sm ${
               isActive
-                ? "gradient-primary text-white shadow-md"
-                : "bg-glass !text-gray-700 hover:!bg-gray-200"
-            } !px-2 py-2 sm:!px-3 md:!px-4 min-w-[90px] h-[38px] md:h-[42px] md:min-w-[120px]`}
+                ? "gradient-primary text-white shadow-md !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)]"
+                : "!text-[var(--text-primary)] hover:!bg-[var(--bg-tertiary)]"
+            } shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F] !px-2 py-2 sm:!px-3 md:!px-4 min-w-[90px] h-[38px] md:h-[42px] md:min-w-[120px]`}
             onClick={() => onSelectCategory(category.name)}
             icon={icon}
           >

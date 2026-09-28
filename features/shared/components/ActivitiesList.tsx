@@ -741,19 +741,7 @@ export default function ActivitiesList({
             )}
           </div>
         )}
-
-        {/* رابط عرض كافة السجلات */}
-        {filteredActivities.length > 0 && (
-          <div className="text-center pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">
-            <Link
-              href="/admin/logs"
-              className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-primary hover:opacity-80 transition-opacity group cursor-pointer"
-            >
-              <span>عرض جميع سجلات العمليات</span>
-              <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform" />
-            </Link>
-          </div>
-        )}
+        
       </div>
 
       <style jsx global>{`
