@@ -2,7 +2,11 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import EditEssayClient from "../EditEssayClient";
-import { fetchAdminBlogById, updateAdminBlog } from "@/lib/api/blogs";
+import {
+  fetchAdminBlogById,
+  updateAdminBlog,
+  formatEssayEditData,
+} from "@/features/essays";
 import { fetchAdminSupportCategories } from "@/lib/api/support-categories";
 
 export const dynamic = "force-dynamic";
@@ -95,23 +99,15 @@ export default async function EditEssayPage({ params }: EditEssayPageProps) {
     const result = await updateAdminBlog(idValue, formData, actionToken);
     if (result.success) {
       revalidatePath("/admin/essays");
+      revalidatePath(`/admin/essays/edit/${idValue}`);
+      revalidatePath(`/admin/essays/${idValue}`);
       revalidatePath("/essays");
       revalidatePath(`/essays/${idValue}`);
     }
     return result;
   }
 
-  const initialData = {
-    id: blog.id,
-    title: blog.title || blog.name || "",
-    name: blog.name || blog.title || "",
-    description: blog.description || "",
-    content: blog.content || blog.description || "",
-    image_url: blog.image_url || blog.image || null,
-    category: blog.category || "",
-    category_id: blog.category_id || null,
-    created_at: blog.created_at || "",
-  };
+  const initialData = formatEssayEditData(blog);
 
   return (
     <EditEssayClient

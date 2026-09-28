@@ -5,18 +5,27 @@ import { MdSettings, MdPalette, MdLogin } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import ImageUploadClient from "./ImageUploadClient";
 import { toast } from "sonner";
+import {
+  defaultSiteColors,
+  defaultGeneralSettings,
+  defaultColorsState,
+  GeneralSettingsState,
+} from "@/features/settings";
 
 export default function SimpleSettingsPage() {
-  const [primaryColor, setPrimaryColor] = useState("#3B82F6");
-  const [secondaryColor, setSecondaryColor] = useState("#10B981");
-  const [accentColor, setAccentColor] = useState("#F59E0B");
-  const [backgroundColor, setBackgroundColor] = useState("#F9FAFB");
-  const [textColor, setTextColor] = useState("#111827");
-  const [borderColor, setBorderColor] = useState("#E5E7EB");
-  const [siteTitle, setSiteTitle] = useState("لوحة التحكم");
-  const [siteDescription, setSiteDescription] = useState("نظام إدارة المحتوى");
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [registrationEnabled, setRegistrationEnabled] = useState(true);
+  const [colors, setColors] = useState<Record<string, string>>(defaultColorsState);
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettingsState>(defaultGeneralSettings);
+
+  const handleColorChange = (key: string, value: string) => {
+    setColors((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleGeneralChange = <K extends keyof GeneralSettingsState>(
+    field: K,
+    value: GeneralSettingsState[K]
+  ) => {
+    setGeneralSettings((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSave = () => {
     // Save settings locally or to backend API
@@ -60,119 +69,30 @@ export default function SimpleSettingsPage() {
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Primary Color */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">اللون الأساسي</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* Secondary Color */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">اللون الثانوي</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* Accent Color */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">لون التمييز</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={accentColor}
-                      onChange={(e) => setAccentColor(e.target.value)}
-                      className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={accentColor}
-                      onChange={(e) => setAccentColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* Background Color */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">لون الخلفية</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={backgroundColor}
-                      onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* Text Color */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">لون النص</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={textColor}
-                      onChange={(e) => setTextColor(e.target.value)}
-                      className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={textColor}
-                      onChange={(e) => setTextColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                {/* Border Color */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">لون الحدود</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={borderColor}
-                      onChange={(e) => setBorderColor(e.target.value)}
-                      className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={borderColor}
-                      onChange={(e) => setBorderColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
+                {defaultSiteColors.map((colorItem) => {
+                  const currentValue = colors[colorItem.key] ?? colorItem.defaultValue;
+                  return (
+                    <div key={colorItem.id} className="border border-gray-200 rounded-lg p-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {colorItem.label}
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={currentValue}
+                          onChange={(e) => handleColorChange(colorItem.key, e.target.value)}
+                          className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={currentValue}
+                          onChange={(e) => handleColorChange(colorItem.key, e.target.value)}
+                          className="flex-1 p-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -192,8 +112,8 @@ export default function SimpleSettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">عنوان الموقع</label>
                   <input
                     type="text"
-                    value={siteTitle}
-                    onChange={(e) => setSiteTitle(e.target.value)}
+                    value={generalSettings.siteTitle}
+                    onChange={(e) => handleGeneralChange("siteTitle", e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-lg"
                   />
                 </div>
@@ -203,8 +123,8 @@ export default function SimpleSettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">وصف الموقع</label>
                   <input
                     type="text"
-                    value={siteDescription}
-                    onChange={(e) => setSiteDescription(e.target.value)}
+                    value={generalSettings.siteDescription}
+                    onChange={(e) => handleGeneralChange("siteDescription", e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-lg"
                   />
                 </div>
@@ -216,8 +136,8 @@ export default function SimpleSettingsPage() {
                     <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={maintenanceMode}
-                        onChange={(e) => setMaintenanceMode(e.target.checked)}
+                        checked={generalSettings.maintenanceMode}
+                        onChange={(e) => handleGeneralChange("maintenanceMode", e.target.checked)}
                         className="ml-2"
                       />
                       <span className="text-sm">تفعيل وضع الصيانة</span>
@@ -232,8 +152,8 @@ export default function SimpleSettingsPage() {
                     <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={registrationEnabled}
-                        onChange={(e) => setRegistrationEnabled(e.target.checked)}
+                        checked={generalSettings.registrationEnabled}
+                        onChange={(e) => handleGeneralChange("registrationEnabled", e.target.checked)}
                         className="ml-2"
                       />
                       <span className="text-sm">السماح بالتسجيل الجديد</span>

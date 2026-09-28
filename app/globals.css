@@ -610,14 +610,29 @@ html.dark .bg-glass {
     border-radius: 20px !important;
   }
 
+
+}
+@media (max-width: 1024px) {
   .resSideBar {
-    transition: all 0.5s ease-in-out;
-    transform: translateX(250%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
+    transform: translateX(100%);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .resSideBar.active {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
   }
 }
 
-.resSideBar.active {
-  transform: translateX(0);
+@media (min-width: 1025px) {
+  .resSideBar {
+    transform: none !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
 }
 
 /* themes page category fillter */

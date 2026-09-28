@@ -48,8 +48,12 @@ export async function apiClient<T>(
 
   // إذا كانت العملية تعديل أو حذف أو إنشاء، نقوم بتفريغ كاش الكيان المعني
   if (!isGet) {
-    const resource = cleanEndpoint.split("/").filter(Boolean)[0] || "";
-    clearApiClientCache(resource);
+    const segments = cleanEndpoint.split("/").filter(Boolean);
+    segments.forEach((seg) => {
+      if (seg && isNaN(Number(seg))) {
+        clearApiClientCache(seg);
+      }
+    });
   }
 
   // في المتصفح نستخدم الـ Proxy الداخلي (/api/v1) لتفادي أخطاء CORS تماماً

@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api/config";
+import { apiClient, clearApiClientCache } from "@/lib/api/config";
 import { stripHtml, cleanAndFormatBlogContent } from "@/lib/utils";
 import type { IBlog, IBlogsPagination, IAdminPagination } from "./types";
 
@@ -281,14 +281,14 @@ export async function fetchAdminBlogById(
   token?: string | null,
 ): Promise<IBlog | null> {
   try {
-    const res = await apiClient<unknown>(`/admin/blogs/${id}`, {}, token);
+    const res = await apiClient<unknown>(`/admin/blogs/${id}`, { forceRefresh: true }, token);
     if (res.success && res.data) {
       const blog = normalizeBlog(res.data);
       if (blog && blog.id) return blog;
     }
 
     // Fallback: جرب endpoint العام /blogs/{id}
-    const pubRes = await apiClient<unknown>(`/blogs/${id}`);
+    const pubRes = await apiClient<unknown>(`/blogs/${id}`, { forceRefresh: true });
     if (pubRes.success && pubRes.data) {
       const blog = normalizeBlog(pubRes.data);
       if (blog && blog.id) return blog;
@@ -548,6 +548,11 @@ export async function updateAdminBlog(
       }
     }
 
+    if (res.success) {
+      clearApiClientCache("blogs");
+      clearApiClientCache("admin");
+    }
+
     return {
       success: res.success,
       data: res.data,
@@ -576,6 +581,11 @@ export async function deleteAdminBlog(
       },
       token,
     );
+
+    if (res.success) {
+      clearApiClientCache("blogs");
+      clearApiClientCache("admin");
+    }
 
     return {
       success: res.success,

@@ -219,12 +219,16 @@ export default function AddEssayClient({
 
       let res;
       try {
-        res = await createAdminBlog(formData, token);
-      } catch (directErr) {
         if (onSave) {
           res = await onSave(formData);
         } else {
-          throw directErr;
+          res = await createAdminBlog(formData, token);
+        }
+      } catch (saveErr) {
+        if (onSave) {
+          res = await createAdminBlog(formData, token);
+        } else {
+          throw saveErr;
         }
       }
 
@@ -259,8 +263,8 @@ export default function AddEssayClient({
         invalidateCache("essays");
 
         toast.success("✅ تمت إضافة المقالة بنجاح!", { id: toastId });
-        router.push("/admin/essays");
         router.refresh();
+        router.push("/admin/essays");
       } else {
         toast.error(res.error || "حدث خطأ أثناء إضافة المقالة", { id: toastId });
       }
