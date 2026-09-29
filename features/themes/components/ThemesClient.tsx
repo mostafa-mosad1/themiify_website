@@ -10,7 +10,7 @@ import ThemeCard from "@/components/ui/ThemeCard";
 import CategoryFilterBar from "@/components/shared/CategoryFilterBar";
 import type { Category } from "@/lib/types";
 import { BiSearch } from "react-icons/bi";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { fetchThemes } from "@/lib/api/themes";
 import { fetchClientCategories } from "@/lib/api/categories";
 
@@ -334,7 +334,7 @@ const PageHeader = ({
       </h1>
 
       <div className="flex flex-col md:flex-row justify-between  flex-1  md:items-center gap-4">
-        <div className="flex items-center gap-2 bg-glass border w-10/12 ms-auto  rounded-full py-2 px-6">
+        <div className="flex items-center gap-2 w-full md:w-1/2 ms-auto overflow-hidden !rounded-full border border-gray-300 bg-white py-2 px-6 shadow-md transition-shadow focus-within:ring-2 focus-within:ring-orange-500/25 dark:border-zinc-600 dark:bg-zinc-900">
           <BiSearch className="text-gray-500" />
           <input
             type="text"
@@ -723,51 +723,33 @@ const PageContent = () => {
       />
 
       <main className="all-themes mt-8 ">
-        <AnimatePresence mode="wait">
-          {filteredThemes.length === 0 && searchQuery ? (
-            /* No search results */
-            <NoResults
-              key="no-results"
-              searchQuery={searchQuery}
-              router={router}
-            />
-          ) : filteredThemes.length === 0 ? (
-            /* Empty state */
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="text-center py-16"
-            >
-              <p className="text-xl text-gray-600 mb-4">لا توجد ثيمات متاحة</p>
-            </motion.div>
-          ) : (
-            /* Theme grid */
-            <motion.div
-              key={`results-${selectedPlatform}-${selectedCategory ?? "all"}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 md:pl-4 themes-grid"
-            >
-              {paginatedThemes.map((theme) => (
-                <ThemeCard
-                  key={theme.id}
-                  id={theme.id}
-                  name={theme.name}
-                  imageUrl={theme.imageUrl}
-                  price={theme.price}
-                  userGuideUrl={theme.userGuideUrl}
-                  previewLink={theme.previewLink}
-                  buyLink={theme.buyLink}
-                  demos={theme.demos}
-                  author=""
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {filteredThemes.length === 0 && searchQuery ? (
+          /* No search results */
+          <NoResults searchQuery={searchQuery} router={router} />
+        ) : filteredThemes.length === 0 ? (
+          /* Empty state */
+          <div className="text-center py-16">
+            <p className="text-xl text-gray-600 mb-4">لا توجد ثيمات متاحة</p>
+          </div>
+        ) : (
+          /* Theme grid */
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 md:pl-4 themes-grid">
+            {paginatedThemes.map((theme) => (
+              <ThemeCard
+                key={theme.id}
+                id={theme.id}
+                name={theme.name}
+                imageUrl={theme.imageUrl}
+                price={theme.price}
+                userGuideUrl={theme.userGuideUrl}
+                previewLink={theme.previewLink}
+                buyLink={theme.buyLink}
+                demos={theme.demos}
+                author=""
+              />
+            ))}
+          </div>
+        )}
 
         {totalPages > 1 && (
           <Pagination

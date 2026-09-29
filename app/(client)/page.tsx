@@ -128,7 +128,7 @@ export default async function ClientDashboardPage() {
                       </div>
 
                       <div className="content w-[calc(100%-3rem)] py-1">
-                        <h2 className="mb-2 text-base font-bold text-black dark:text-white md:text-2xl">
+                        <h2 className="mb-2 text-base font-bold !text-black dark:text-white md:text-2xl">
                           {step.title}
                         </h2>
                         {step.subtitle && (
@@ -156,16 +156,59 @@ export default async function ClientDashboardPage() {
                                   className="flex items-start gap-2.5"
                                 >
                                   <span className="flex items-center justify-center w-4 h-4 md:w-5 md:h-5 mt-1 shrink-0">
-                                    <Image
-                                      src={checkmarkCircle}
-                                      alt="check"
-                                      className="w-full h-full object-contain"
-                                    />
+                                    {step.step_number === 1 ? (
+                                       <Image
+                                        src={checkmarkCircle}
+                                        alt="check"
+                                        className="w-full h-full object-contain"
+                                      />
+                                    ) : (
+                                     <svg
+                                        width="8"
+                                        height="8"
+                                        viewBox="0 0 8 8"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        aria-hidden="true"
+                                      >
+                                        <g filter={`url(#filter0_i_${step.step_number}_${pIdx})`}>
+                                          <circle cx="4" cy="4" r="4" fill="#F26B21" />
+                                        </g>
+                                        <defs>
+                                          <filter
+                                            id={`filter0_i_${step.step_number}_${pIdx}`}
+                                            x="0"
+                                            y="0"
+                                            width="8"
+                                            height="10.4615"
+                                            filterUnits="userSpaceOnUse"
+                                            colorInterpolationFilters="sRGB"
+                                          >
+                                            <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                                            <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+                                            <feColorMatrix
+                                              in="SourceAlpha"
+                                              type="matrix"
+                                              values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                              result="hardAlpha"
+                                            />
+                                            <feOffset dy="2.46154" />
+                                            <feGaussianBlur stdDeviation="1.23077" />
+                                            <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+                                            <feColorMatrix
+                                              type="matrix"
+                                              values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.25 0"
+                                            />
+                                            <feBlend mode="normal" in2="shape" result="effect1_innerShadow_145_183" />
+                                          </filter>
+                                        </defs>
+                                      </svg>
+                                    )}
                                   </span>
-                                  <span className="font-medium text-black dark:text-white text-xs md:text-base leading-relaxed">
+                                  <span className="font-medium text-black/80 dark:text-white text-xs md:text-base leading-relaxed">
                                     {hasColon ? (
                                       <>
-                                        <strong className="text-[var(--primary-color)] font-bold ml-1">
+                                        <strong className="text-black font-bold ml-1">
                                           {titlePart}
                                         </strong>
                                         {descPart}
