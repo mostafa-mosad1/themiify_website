@@ -3,10 +3,25 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { IoIosColorPalette } from "react-icons/io";
 import { HiDocumentText } from "react-icons/hi2";
+import {
+  FaGlobe,
+  FaHeadset,
+  FaHistory,
+  FaQuestionCircle,
+  FaStar,
+  FaUsers,
+} from "react-icons/fa";
+import { MdCategory, MdOutlineSupportAgent } from "react-icons/md";
 import ActivitiesList from "@/components/ui/ActivitiesList";
 import { fetchThemes } from "@/lib/api/themes";
 import { fetchBlogs } from "@/lib/api/blogs";
 import { fetchAdminLogs } from "@/lib/api/logs";
+import { fetchCategories } from "@/lib/api/categories";
+import { fetchPlatforms } from "@/lib/api/platforms";
+import { fetchAdminSupportCategories } from "@/lib/api/support-categories";
+import { fetchAdminSupportQuestions } from "@/lib/api/support-questions";
+import { fetchAdminSupportChannels } from "@/lib/api/support-channels";
+import { fetchAdminFeedbacks } from "@/lib/api/feedbacks";
 import {
   fetchAdminById,
   fetchAdmins,
@@ -57,17 +72,60 @@ export default async function Dashboard() {
   const currentUser = await getCurrentServerUser();
   const isSuperAdmin = Boolean(currentUser?.isSuperAdmin);
 
-  const [themesRes, blogsRes, logsRes, adminsRes] =
-    await Promise.all([
+  const [
+    themesRes,
+    blogsRes,
+    logsRes,
+    adminsRes,
+    categoriesRes,
+    platformsRes,
+    supportCategories,
+    supportQuestionsRes,
+    supportChannelsRes,
+    feedbacksRes,
+  ] = await Promise.all([
       fetchThemes({ per_page: 1 }),
       fetchBlogs({ per_page: 1 }),
-      isSuperAdmin ? fetchAdminLogs(token, 1) : Promise.resolve({ logs: [] }),
-      isSuperAdmin ? fetchAdmins(token) : Promise.resolve({ admins: [] }),
+      fetchAdminLogs(token, 1),
+      isSuperAdmin
+        ? fetchAdmins(token)
+        : Promise.resolve({ admins: [], pagination: undefined }),
+      fetchCategories(token, 1),
+      fetchPlatforms(token, 1),
+      fetchAdminSupportCategories(token),
+      fetchAdminSupportQuestions(token),
+      fetchAdminSupportChannels(token),
+      fetchAdminFeedbacks(token),
     ]);
 
   const themesCount = themesRes.pagination?.total ?? (themesRes.themes?.length || 0);
   const articlesCount = blogsRes.pagination?.total ?? (blogsRes.blogs?.length || 0);
+  const categoriesCount = categoriesRes.pagination?.total ?? categoriesRes.categories.length;
+  const platformsCount = platformsRes.pagination?.total ?? platformsRes.platforms.length;
+  const supportCategoriesCount = supportCategories.length;
+  const supportQuestionsCount = supportQuestionsRes.questions.length;
+  const supportChannelsCount = supportChannelsRes.channels.length;
+  const feedbacksCount = feedbacksRes.feedbacks.length;
   const logs = logsRes.logs || [];
+  const accountsCount = adminsRes.pagination?.total ?? adminsRes.admins.length;
+  const logsCount = logsRes.pagination?.total ?? logs.length;
+
+  const statCards = [
+    { label: "عدد الثيمات", value: themesCount, href: "/admin/themes", icon: <IoIosColorPalette size={25} /> },
+    { label: "عدد المقالات", value: articlesCount, href: "/admin/essays", icon: <HiDocumentText size={25} /> },
+    { label: "أقسام الثيمات", value: categoriesCount, href: "/admin/categories", icon: <MdCategory size={25} /> },
+    { label: "المنصات", value: platformsCount, href: "/admin/platforms", icon: <FaGlobe size={23} /> },
+    { label: "فئات الدعم", value: supportCategoriesCount, href: "/admin/support", icon: <MdOutlineSupportAgent size={25} /> },
+    { label: "أسئلة الدعم", value: supportQuestionsCount, href: "/admin/support", icon: <FaQuestionCircle size={23} /> },
+    { label: "قنوات الدعم", value: supportChannelsCount, href: "/admin/support", icon: <FaHeadset size={23} /> },
+    { label: "تقييمات المستخدمين", value: feedbacksCount, href: "/admin/form", icon: <FaStar size={23} /> },
+    { label: "سجل الأنشطة", value: logsCount, href: "/admin/logs", icon: <FaHistory size={23} /> },
+    ...(isSuperAdmin
+      ? [
+          { label: "حسابات الأدمن", value: accountsCount, href: "/admin/accounts", icon: <FaUsers size={23} /> },
+        ]
+      : []),
+  ];
 
   // وضع المشرفين المسترجعين من GET /admin/admins في الـ Map
   const adminsMap = new Map<number | string, IAdminAccount>();
@@ -116,42 +174,26 @@ export default async function Dashboard() {
           <span>مرحباً بك في لوحة التحكم الخاصة بك</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
-          {/* كارت عدد الثيمات */}
-          <Link
-            href="/admin/themes"
-            className="bg-white dark:bg-[var(--bg-secondary)] border border-[var(--border-color)]/70 rounded-3xl p-5 md:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-primary/40 transition-all flex items-center gap-4 group cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 flex items-center justify-center text-[#f26a21] group-hover:scale-110 transition-transform shrink-0">
-              <IoIosColorPalette size={26} />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-3xl md:text-4xl font-extrabold text-[#0e132c] dark:text-white font-mono leading-none">
-                {themesCount}
-              </p>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium pt-1">
-                عدد الثيمات
-              </p>
-            </div>
-          </Link>
-
-          {/* كارت عدد المقالات */}
-          <Link
-            href="/admin/essays"
-            className="bg-white dark:bg-[var(--bg-secondary)] border border-[var(--border-color)]/70 rounded-3xl p-5 md:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-primary/40 transition-all flex items-center gap-4 group cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 flex items-center justify-center text-[#f26a21] group-hover:scale-110 transition-transform shrink-0">
-              <HiDocumentText size={26} />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-3xl md:text-4xl font-extrabold text-[#0e132c] dark:text-white font-mono leading-none">
-                {articlesCount}
-              </p>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium pt-1">
-                عدد المقالات
-              </p>
-            </div>
-          </Link>
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {statCards.map((stat) => (
+            <Link
+              key={stat.label}
+              href={stat.href}
+              className="group flex cursor-pointer items-center gap-4 rounded-3xl border border-[var(--border-color)]/70 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all hover:border-primary/40 hover:shadow-md dark:bg-[var(--bg-secondary)] md:p-6"
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-orange-100 bg-orange-50 text-[#f26a21] transition-transform group-hover:scale-110 dark:border-orange-900/40 dark:bg-orange-950/40">
+                {stat.icon}
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <p className="font-mono text-3xl font-extrabold leading-none text-[#0e132c] dark:text-white md:text-4xl">
+                  {stat.value}
+                </p>
+                <p className="pt-1 text-xs font-medium text-gray-500 dark:text-gray-400 md:text-sm">
+                  {stat.label}
+                </p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -179,7 +221,7 @@ export default async function Dashboard() {
       </div>
 
       {/* ─── قسم سجل الأنشطة ─── */}
-      {isSuperAdmin && <ActivitiesList initialActivities={formattedActivities} />}
+      <ActivitiesList initialActivities={formattedActivities} />
     </div>
   );
 }
