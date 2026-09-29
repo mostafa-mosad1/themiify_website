@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -30,7 +30,6 @@ function SearchParamsHandler({
 }
 
 export default function LoginClient() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -68,19 +67,31 @@ export default function LoginClient() {
         throw new Error(res.error || res.message || "البريد الإلكتروني أو كلمة المرور غير صحيحة");
       }
 
-      const token = res.data.token || (res.data as any)?.access_token;
-      const user = res.data.admin || res.data.user || (res.data as any);
+      const token = res.data.token;
+      const responseRole = String(res.data.role || "").toLowerCase();
+      const user = res.data.admin || res.data.user;
 
-      const isSuperAdmin = Boolean(user?.is_super_admin);
+      const isSuperAdmin = Boolean(
+        res.data.is_super_admin ||
+        user?.is_super_admin ||
+        responseRole === "super_admin"
+      );
       const isUserAdmin = Boolean(
         isSuperAdmin ||
+        res.data.is_admin ||
+        responseRole === "admin" ||
+        responseRole === "super_admin" ||
         user?.is_admin ||
         Boolean(res.data.admin) ||
         user?.role === "admin" ||
         user?.role === "super_admin"
       );
 
-      const resolvedRole = isSuperAdmin ? "super_admin" : (isUserAdmin ? "admin" : (user?.role || "user"));
+      const resolvedRole = isSuperAdmin
+        ? "super_admin"
+        : isUserAdmin
+          ? "admin"
+          : "user";
 
       if (token) {
         // تخزين التوكن في الكوكيز للـ Server Components
@@ -88,6 +99,8 @@ export default function LoginClient() {
         document.cookie = `bearer_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
         if (isUserAdmin) {
           document.cookie = `adminToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+        } else {
+          document.cookie = "adminToken=; path=/; max-age=0; samesite=lax";
         }
         
         const sessionPayload = {
@@ -105,11 +118,12 @@ export default function LoginClient() {
           localStorage.setItem("authToken", token);
           localStorage.setItem("bearer_token", token);
           if (isUserAdmin) localStorage.setItem("adminToken", token);
+          else localStorage.removeItem("adminToken");
           localStorage.setItem("localAuthSession", JSON.stringify(sessionPayload));
           localStorage.setItem(
             "userData",
             JSON.stringify({
-              ...user,
+              ...(user ?? {}),
               ...sessionPayload,
             }),
           );
@@ -121,9 +135,11 @@ export default function LoginClient() {
       
       const redirectPath = isUserAdmin ? "/admin" : "/";
       window.location.href = redirectPath;
-    } catch (err: any) {
-      setError(err?.message || "حدث خطأ أثناء تسجيل الدخول");
-      toast.error(err?.message || "فشل تسجيل الدخول");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "حدث خطأ أثناء تسجيل الدخول";
+      setError(errorMessage);
+      toast.error(errorMessage || "فشل تسجيل الدخول");
     } finally {
       setLoading(false);
     }

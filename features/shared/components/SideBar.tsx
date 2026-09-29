@@ -122,15 +122,15 @@ const MENU_ITEMS: MenuItem[] = [
     showForGuest: false,
     superAdminOnly: true,
   },
-  {
-    id: "settings",
-    label: "الاعدادات",
-    icon: <IoSettings size={20} />,
-    userPath: "/settings",
-    adminPath: "/admin/settings",
-    showForUser: false,
-    showForGuest: false,
-  },
+  // {
+  //   id: "settings",
+  //   label: "الاعدادات",
+  //   icon: <IoSettings size={20} />,
+  //   userPath: "/settings",
+  //   adminPath: "/admin/settings",
+  //   showForUser: false,
+  //   showForGuest: false,
+  // },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

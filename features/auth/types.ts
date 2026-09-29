@@ -23,6 +23,7 @@ export const DEFAULT_GUEST: UserData = {
 export interface IUser {
   id: number | string;
   name?: string;
+  userName?: string;
   email: string;
   role?: string;
   is_admin?: boolean;
@@ -32,6 +33,9 @@ export interface IUser {
 
 export interface ILoginResponse {
   token: string;
+  role?: string;
+  is_admin?: boolean;
+  is_super_admin?: boolean;
   user?: IUser;
   admin?: IUser;
 }
