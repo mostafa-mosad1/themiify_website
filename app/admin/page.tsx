@@ -61,7 +61,20 @@ function renderQuickActionIcon(type: "theme" | "essay" | "support") {
   }
 }
 
-export default async function Dashboard() {
+interface DashboardProps {
+  searchParams?:
+    | Promise<{ [key: string]: string | string[] | undefined }>
+    | { [key: string]: string | string[] | undefined };
+}
+
+export default async function Dashboard({ searchParams }: DashboardProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawLogsPage = resolvedSearchParams.logsPage;
+  const requestedLogsPage = Array.isArray(rawLogsPage)
+    ? rawLogsPage[0]
+    : rawLogsPage;
+  const logsPage = Math.max(1, Number.parseInt(requestedLogsPage || "1", 10) || 1);
+
   const cookieStore = await cookies();
   const token =
     cookieStore.get("authToken")?.value ||
@@ -86,7 +99,7 @@ export default async function Dashboard() {
   ] = await Promise.all([
       fetchThemes({ per_page: 1 }),
       fetchBlogs({ per_page: 1 }),
-      fetchAdminLogs(token, 1),
+      fetchAdminLogs(token, logsPage),
       isSuperAdmin
         ? fetchAdmins(token)
         : Promise.resolve({ admins: [], pagination: undefined }),
@@ -221,7 +234,11 @@ export default async function Dashboard() {
       </div>
 
       {/* ─── قسم سجل الأنشطة ─── */}
-      <ActivitiesList initialActivities={formattedActivities} />
+      <ActivitiesList
+        initialActivities={formattedActivities}
+        currentPage={logsPage}
+        totalPages={logsRes.pagination?.last_page ?? 1}
+      />
     </div>
   );
 }
