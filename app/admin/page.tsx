@@ -61,7 +61,7 @@ export default async function Dashboard() {
     await Promise.all([
       fetchThemes({ per_page: 1 }),
       fetchBlogs({ per_page: 1 }),
-      fetchAdminLogs(token, 1),
+      isSuperAdmin ? fetchAdminLogs(token, 1) : Promise.resolve({ logs: [] }),
       isSuperAdmin ? fetchAdmins(token) : Promise.resolve({ admins: [] }),
     ]);
 
@@ -179,7 +179,7 @@ export default async function Dashboard() {
       </div>
 
       {/* ─── قسم سجل الأنشطة ─── */}
-      <ActivitiesList initialActivities={formattedActivities} />
+      {isSuperAdmin && <ActivitiesList initialActivities={formattedActivities} />}
     </div>
   );
 }

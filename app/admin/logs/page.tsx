@@ -1,5 +1,6 @@
 // app/admin/logs/page.tsx
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import TablePage from "@/components/ui/TablePage";
 import { fetchAdminLogs } from "@/lib/api/logs";
 import { fetchAdminById, fetchAdmins, IAdminAccount } from "@/lib/api/admins";
@@ -30,6 +31,7 @@ export default async function LogsPage({ searchParams }: LogsPageProps) {
 
   const currentUser = await getCurrentServerUser();
   const isSuperAdmin = Boolean(currentUser?.isSuperAdmin);
+  if (!isSuperAdmin) redirect("/admin");
 
   const [{ logs, pagination }, adminsRes] = await Promise.all([
     fetchAdminLogs(token, page),
