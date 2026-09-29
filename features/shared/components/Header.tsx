@@ -20,7 +20,7 @@ const menuItems = [
     userPath: "/admin/accounts",
     adminPath: "/admin/accounts",
   },
-  { label: "الاعدادات", userPath: "/settings", adminPath: "/admin/settings" },
+  // { label: "الاعدادات", userPath: "/settings", adminPath: "/admin/settings" },
   { label: "الدعم", userPath: "/support", adminPath: "/admin/support" },
 ];
 

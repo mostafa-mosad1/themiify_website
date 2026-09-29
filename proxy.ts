@@ -45,7 +45,9 @@ export function proxy(request: NextRequest) {
   let localSession: {
     email?: string
     isAdmin?: boolean
+    is_admin?: boolean
     is_super_admin?: boolean
+    role?: string
     userRole?: string
     isLoggedIn?: boolean
   } | null = null
@@ -64,18 +66,27 @@ export function proxy(request: NextRequest) {
     (localSession?.isLoggedIn && isValidToken(localSession?.email))
   )
 
+  const sessionRole = (localSession?.userRole || localSession?.role || '').toLowerCase()
   const isSuperAdmin = Boolean(
-    localSession?.is_super_admin ||
-    localSession?.userRole === 'super_admin'
+    localSession?.is_super_admin === true ||
+    sessionRole === 'super_admin'
   )
-
-  const isAdmin = Boolean(
-    hasAdminToken ||
-    isSuperAdmin ||
-    localSession?.isAdmin ||
-    localSession?.userRole === 'admin' ||
-    localSession?.userRole === 'super_admin'
+  const hasSessionRole = Boolean(
+    localSession && (
+      typeof localSession.isAdmin === 'boolean' ||
+      typeof localSession.is_admin === 'boolean' ||
+      typeof localSession.is_super_admin === 'boolean' ||
+      sessionRole
+    )
   )
+  const isAdmin = hasSessionRole
+    ? Boolean(
+        isSuperAdmin ||
+        localSession?.isAdmin === true ||
+        localSession?.is_admin === true ||
+        sessionRole === 'admin'
+      )
+    : hasAdminToken
 
   const isAdminPath = pathname.startsWith('/admin')
   const isAuthPath = pathname === '/login' || pathname === '/register'

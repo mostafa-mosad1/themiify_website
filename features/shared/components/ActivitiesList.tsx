@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   FaUser,
@@ -19,6 +20,8 @@ import { fetchAdminLogs } from "@/lib/api/logs";
 
 interface ActivitiesListProps {
   initialActivities: Activity[];
+  currentPage: number;
+  totalPages: number;
 }
 
 function formatRelativeTime(dateString: string): string {
@@ -176,7 +179,10 @@ const DEFAULT_ACTIVITIES: Activity[] = [
 
 export default function ActivitiesList({
   initialActivities,
+  currentPage,
+  totalPages,
 }: ActivitiesListProps) {
+  const router = useRouter();
   const [filters, setFilters] = useState({
     actionType: "all",
     table: "all",
@@ -743,6 +749,37 @@ export default function ActivitiesList({
         )}
         
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2" dir="ltr">
+          <button
+            type="button"
+            onClick={() => router.push(`/admin?logsPage=${currentPage - 1}`, { scroll: false })}
+            disabled={currentPage <= 1}
+            aria-label="السابق"
+            title="السابق"
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 border-b border-b-orange-500 bg-white text-[#111827] shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+          >
+            <FaArrowLeft size={12} />
+          </button>
+          <div
+            className="min-w-8 text-center text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400"
+            aria-label={`صفحة ${currentPage} من ${totalPages}`}
+          >
+            {currentPage}/{totalPages}
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push(`/admin?logsPage=${currentPage + 1}`, { scroll: false })}
+            disabled={currentPage >= totalPages}
+            aria-label="التالي"
+            title="التالي"
+            className="flex h-7 w-7 rotate-180 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300"
+          >
+            <FaArrowLeft size={12} />
+          </button>
+        </div>
+      )}
 
       <style jsx global>{`
         .custom-activities-scrollbar::-webkit-scrollbar {

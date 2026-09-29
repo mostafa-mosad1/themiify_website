@@ -72,8 +72,8 @@ export function formatAdminAccounts(admins: IAdminAccount[] = []) {
     email: account.email,
     is_super_admin: account.is_super_admin,
     role_display: account.is_super_admin ? "سوبر أدمن" : "أدمن",
-    created_at: formatAdminDate(account.created_at),
-    updated_at: formatAdminDate(account.updated_at),
+    created_at: account.created_at,
+    updated_at: account.updated_at,
   }));
 }
 

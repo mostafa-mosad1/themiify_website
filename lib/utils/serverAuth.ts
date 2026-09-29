@@ -12,39 +12,42 @@ export interface ServerUser {
 export async function getCurrentServerUser(): Promise<ServerUser | null> {
   try {
     const cookieStore = await cookies();
-    const token =
-      cookieStore.get("authToken")?.value ||
-      cookieStore.get("adminToken")?.value ||
-      cookieStore.get("bearer_token")?.value;
-
     const sessionCookie = cookieStore.get("localAuthSession")?.value;
     if (sessionCookie) {
       try {
         const parsed = JSON.parse(decodeURIComponent(sessionCookie));
         if (parsed && (parsed.email || parsed.userEmail)) {
+          const role = String(parsed.userRole || parsed.role || "").toLowerCase();
           const isSuper = Boolean(
-            parsed.is_super_admin ??
-            parsed.isSuperAdmin ??
-            (parsed.userRole === "super_admin" || parsed.role === "super_admin")
+            parsed.is_super_admin === true ||
+            parsed.isSuperAdmin === true ||
+            role === "super_admin"
+          );
+          const isAdmin = Boolean(
+            isSuper ||
+            parsed.isAdmin === true ||
+            parsed.is_admin === true ||
+            role === "admin"
           );
           return {
             id: String(parsed.id || "1"),
             email: parsed.email || parsed.userEmail || "",
-            isAdmin: Boolean(parsed.isAdmin ?? true),
-            userRole: isSuper ? "super_admin" : (parsed.userRole || (parsed.isAdmin ? "admin" : "user")),
+            isAdmin,
+            userRole: isSuper ? "super_admin" : isAdmin ? "admin" : "user",
             isSuperAdmin: isSuper,
           };
         }
       } catch {}
     }
 
-    if (token) {
+    const adminToken = cookieStore.get("adminToken")?.value;
+    if (adminToken && adminToken !== "undefined" && adminToken !== "null") {
       return {
         id: "1",
         email: "admin@themiify.com",
         isAdmin: true,
         userRole: "admin",
-        isSuperAdmin: true,
+        isSuperAdmin: false,
       };
     }
 

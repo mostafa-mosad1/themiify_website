@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
   // (rich-text HTML content can easily exceed the default 4.5MB limit)
   experimental: {
     staleTimes: {
-      dynamic: 300,
+      dynamic: 0,
       static: 300,
     },
     serverActions: {

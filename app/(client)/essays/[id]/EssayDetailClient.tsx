@@ -384,20 +384,31 @@ export default function EssayDetailClient() {
       </Link>
 
       {/* ─── Hero Image — full width ─── */}
-      <div className="relative w-full h-auto overflow-hidden mb-5 md:mb-8 bg-gray-100 rounded-xl md:rounded-2xl max-h-[260px] sm:max-h-[320px] md:max-h-[420px] flex items-center justify-center">
+      <div className="relative isolate flex h-[260px] w-full items-center justify-center overflow-hidden rounded-xl bg-gray-900 mb-5 sm:h-[320px] md:mb-8 md:h-[420px] md:rounded-2xl">
         {mainImg &&
         typeof mainImg === "string" &&
         !mainImg.includes("[object") ? (
           <img
             src={mainImg}
             alt={mainTitle}
-            className="w-full h-full object-cover max-h-[420px]"
+            className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
-          <div className="w-full h-64 flex items-center justify-center bg-[var(--bg-secondary)]">
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-secondary)]">
             <FaImage className="text-[var(--text-tertiary)] text-6xl" />
           </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/50 to-black/75" />
+        <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-5 text-center text-white sm:px-8">
+          <h1 className="text-xl font-bold leading-snug drop-shadow-md sm:text-2xl !text-white md:text-4xl">
+            {mainTitle}
+          </h1>
+          {articleSummary && (
+            <p className="mt-3 line-clamp-2 max-w-3xl text-center text-xs leading-relaxed text-white/90 drop-shadow sm:text-sm md:text-base">
+              {articleSummary}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* ─── Content + Sidebar side by side ─── */}
@@ -405,11 +416,7 @@ export default function EssayDetailClient() {
         {/* ── Main Content ── */}
         <article className="flex-1 min-w-0 font">
           <div className="mb-5 border-b-2 border-primary pb-4">
-            <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] leading-snug">
-              {mainTitle}
-            </h1>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--text-secondary)]">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-secondary)]">
               {essay.category && (
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-primary font-medium">
                   {essay.category}
@@ -429,12 +436,6 @@ export default function EssayDetailClient() {
               </span>
             </div>
           </div>
-
-          {articleSummary && (
-            <div className="mb-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-secondary)]/60 p-4 text-sm leading-relaxed text-[var(--text-secondary)] md:text-base">
-              {articleSummary}
-            </div>
-          )}
 
           <div
             className="text-base leading-relaxed prose prose-lg max-w-none text-[var(--text-primary)] md:text-lg"

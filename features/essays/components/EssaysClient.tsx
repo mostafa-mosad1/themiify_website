@@ -10,12 +10,26 @@ import {
 import { useCache, CACHE_DURATION } from "@/lib/hooks/useCache";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FaImage } from "react-icons/fa";
+import { FaCalendar, FaImage } from "react-icons/fa";
 import { BiSearch } from "react-icons/bi";
 import { useRouter, useSearchParams } from "next/navigation";
 import { stripHtml } from "@/lib/utils";
 
 type Essay = IBlog;
+
+const formatEssayDate = (dateString?: string) => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("ar-EG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 // ─── Skeleton Component ─────────────────────────────
 // ─── Skeleton Component ─────────────────────────────
 const EssayCardSkeleton = () => (
@@ -68,7 +82,7 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-glass rounded-2xl overflow-hidden shadow hover:shadow-lg transition-all duration-300  group"
+      className="group relative z-0 rounded-2xl border border-white/70 bg-glass shadow-[0_8px_24px_rgba(15,23,42,0.10),0_2px_6px_rgba(15,23,42,0.06)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:z-10 hover:-translate-y-1.5 hover:border-orange-200 hover:shadow-[0_18px_36px_rgba(15,23,42,0.16),0_6px_12px_rgba(242,107,33,0.10)] dark:border-white/10"
     >
       <Link
         href={`/essays/${essay.id}`}
@@ -103,7 +117,15 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
         {/* المحتوى */}
         <div className="p-5 w-full lg:w-3/5">
           {/* التاريخ والمشاهدات في سطر واحد */}
-          <div className="flex items-center justify-between text-gray-500 text-sm mb-3"></div>
+          <div className="mb-3 flex items-center  gap-1.5 text-gray-500">
+            <FaCalendar className="text-orange-500" aria-hidden="true" />
+            <time
+              dateTime={essay.created_at}
+              className="text-right  text-[12.17px] font-normal leading-[149%] tracking-[0]"
+            >
+              {formatEssayDate(essay.created_at)}
+            </time>
+          </div>
 
           {/* العنوان */}
           <h3 className="md:text-xl text-sm font-bold  mb-2 !text-black group-hover:text-orange-500  transition-colors line-clamp-2">
@@ -244,7 +266,7 @@ function EssaysContent() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-2 text-right md:mb-8"
           >
-            <h1 className="mb-2 text-lg font-bold md:text-2xl">
+            <h1 className="mb-2 text-lg !text-black font-bold md:text-2xl">
               دليلك لتجربة متجر أفضل
             </h1>
             <p className="text-sm text-gray-700 md:text-lg">
