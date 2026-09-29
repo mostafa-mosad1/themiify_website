@@ -631,7 +631,7 @@ export default function SupportPageUI() {
         {/* Header */}
         <div className="head bg-glass px-10 py-6 rounded-2xl shadow-sm flex items-center justify-between relative md:mt-16">
           <div className="content w-3/5 md:w-3/4">
-            <h1 className="text-base md:text-2xl font-bold mb-4">
+            <h1 className="text-base md:text-2xl !text-black font-bold mb-4">
               هل تحتاج إلى مساعدة؟
             </h1>
             <p className="text-sm md:text-base text-[var(--text-secondary)]">
@@ -663,7 +663,7 @@ export default function SupportPageUI() {
           </div>
 
           <div className="containt absolute top-1/2 right-0 transform -translate-y-1/2 mx-10 flex flex-col items-start xl:gap-4 lg:gap-2 gap-[4px]">
-            <h1 className="text-base md:text-2xl font-bold text-white">
+            <h1 className="text-base md:text-2xl font-bold !text-white">
               قيّـــم تجــربتك معنـــا
             </h1>
             <p className="text-sm md:text-xl text-white font-normal ">
