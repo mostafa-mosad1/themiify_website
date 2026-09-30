@@ -3,6 +3,34 @@
 import { apiClient } from "@/lib/api/config";
 import type { ITheme, IThemesPagination } from "./types";
 
+async function enrichThemesWithDemos(
+  themes: ITheme[],
+  token?: string | null,
+): Promise<ITheme[]> {
+  if (!themes || !Array.isArray(themes) || themes.length === 0) return [];
+
+  return Promise.all(
+    themes.map(async (theme) => {
+      const rawDemos = (theme as any)?.demos || (theme as any)?.theme_demos;
+      if (Array.isArray(rawDemos) && rawDemos.length > 0) {
+        return theme;
+      }
+      try {
+        const detail = await fetchThemeById(theme.id, token);
+        if (detail && (detail.demos || (detail as any).theme_demos)) {
+          return {
+            ...theme,
+            demos: detail.demos || (detail as any).theme_demos || [],
+          };
+        }
+      } catch {
+        // ignore
+      }
+      return theme;
+    }),
+  );
+}
+
 export async function fetchThemes(params?: {
   page?: number;
   per_page?: number;
@@ -26,18 +54,21 @@ export async function fetchThemes(params?: {
     >(`/themes${queryString}`);
 
     if (res.success && res.data) {
+      let rawList: ITheme[] = [];
+      let pagination: IThemesPagination | undefined = undefined;
+
       if (Array.isArray(res.data)) {
-        return { themes: res.data };
+        rawList = res.data;
+      } else if (Array.isArray((res.data as any).data)) {
+        rawList = (res.data as any).data;
+        pagination = res.data as any;
+      } else if (Array.isArray((res.data as any).themes)) {
+        rawList = (res.data as any).themes;
+        pagination = res.data as any;
       }
-      if (Array.isArray((res.data as any).data)) {
-        return { themes: (res.data as any).data, pagination: res.data as any };
-      }
-      if (Array.isArray((res.data as any).themes)) {
-        return {
-          themes: (res.data as any).themes,
-          pagination: res.data as any,
-        };
-      }
+
+      const themes = await enrichThemesWithDemos(rawList);
+      return { themes, pagination };
     }
     return { themes: [] };
   } catch (error) {
@@ -57,7 +88,11 @@ export async function fetchThemeById(
     const endpoint = token
       ? `/admin/themes/${encodeURIComponent(rawId)}`
       : `/themes/${encodeURIComponent(rawId)}`;
-    const res = await apiClient<any>(endpoint, { silent: true }, token);
+    const res = await apiClient<any>(
+      endpoint,
+      { silent: true, forceRefresh: true },
+      token,
+    );
 
     if (res.success && res.data) {
       if (res.data.theme && typeof res.data.theme === "object") {
@@ -93,7 +128,7 @@ export async function fetchThemeById(
       : `/admin/themes/${encodeURIComponent(rawId)}`;
     const fallbackRes = await apiClient<any>(
       fallbackEndpoint,
-      { silent: true },
+      { silent: true, forceRefresh: true },
       token,
     );
     if (fallbackRes.success && fallbackRes.data) {
@@ -171,16 +206,21 @@ export async function fetchAdminThemes(
       IThemesPagination | ITheme[] | { data: ITheme[] }
     >(`/admin/themes${queryString}`, {}, token);
     if (res.success && res.data) {
-      if (Array.isArray(res.data)) return { themes: res.data };
-      if (Array.isArray((res.data as any).data)) {
-        return { themes: (res.data as any).data, pagination: res.data as any };
+      let rawList: ITheme[] = [];
+      let pagination: IThemesPagination | undefined = undefined;
+
+      if (Array.isArray(res.data)) {
+        rawList = res.data;
+      } else if (Array.isArray((res.data as any).data)) {
+        rawList = (res.data as any).data;
+        pagination = res.data as any;
+      } else if (Array.isArray((res.data as any).themes)) {
+        rawList = (res.data as any).themes;
+        pagination = res.data as any;
       }
-      if (Array.isArray((res.data as any).themes)) {
-        return {
-          themes: (res.data as any).themes,
-          pagination: res.data as any,
-        };
-      }
+
+      const themes = await enrichThemesWithDemos(rawList, token);
+      return { themes, pagination };
     }
     const fallback = await fetchThemes(params);
     return fallback;
@@ -235,7 +275,29 @@ export async function updateAdminTheme(
   message?: string;
 }> {
   try {
-    const res = await apiClient<ITheme>(
+    if (!formData.has("_method")) {
+      formData.append("_method", "PATCH");
+    }
+
+    const postRes = await apiClient<ITheme>(
+      `/admin/themes/${id}`,
+      {
+        method: "POST",
+        body: formData,
+      },
+      token,
+    );
+
+    if (postRes.success) {
+      return {
+        success: true,
+        data: postRes.data,
+        error: undefined,
+        message: postRes.message,
+      };
+    }
+
+    const patchRes = await apiClient<ITheme>(
       `/admin/themes/${id}`,
       {
         method: "PATCH",
@@ -244,31 +306,12 @@ export async function updateAdminTheme(
       token,
     );
 
-    if (!res.success) {
-      formData.set("_method", "PATCH");
-      const postRes = await apiClient<ITheme>(
-        `/admin/themes/${id}`,
-        {
-          method: "POST",
-          body: formData,
-        },
-        token,
-      );
-      if (postRes.success) {
-        return {
-          success: true,
-          data: postRes.data,
-          error: undefined,
-          message: postRes.message,
-        };
-      }
-    }
-
     return {
-      success: res.success,
-      data: res.data,
-      error: res.error || (res.success ? undefined : res.message),
-      message: res.message,
+      success: patchRes.success,
+      data: patchRes.data,
+      error:
+        patchRes.error || (patchRes.success ? undefined : patchRes.message),
+      message: patchRes.message,
     };
   } catch (error: any) {
     return {

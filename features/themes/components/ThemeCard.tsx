@@ -24,10 +24,13 @@ import "./ThemeCard.css";
 
 interface ThemeDemo {
   id: string | number;
-  icon_name: string;
+  icon_name?: string | null;
+  icon?: string | null;
   url: string;
-  image_url: string;
-  order: number;
+  image_url?: string | null;
+  image?: string | null;
+  order?: number;
+  display_order?: number;
   playlist_link?: string;
   youtube_link?: string;
 }
@@ -146,13 +149,24 @@ const ThemeCard: React.FC<ProductCardProps> = ({
 }) => {
   const router = useRouter();
 
-  // Sort demos by order; track which one is active (first demo is active by default)
+  // Sort demos by order
   const sortedDemos = useMemo(() => {
-    return [
-      { id, icon_name: "", url: previewLink ?? "", image_url: imageUrl, order: 0 },
-      ...demos,
-    ].sort((a, b) => a.order - b.order);
-  }, [id, previewLink, imageUrl, demos]);
+    let list = demos;
+    if (typeof list === "string") {
+      try {
+        list = JSON.parse(list);
+      } catch {
+        list = [];
+      }
+    }
+    if (list && Array.isArray(list) && list.length > 0) {
+      return [...list].sort(
+        (a, b) =>
+          (a.order ?? a.display_order ?? 0) - (b.order ?? b.display_order ?? 0),
+      );
+    }
+    return [];
+  }, [demos]);
 
   const [activeDemoId, setActiveDemoId] = useState<string | number | null>(
     sortedDemos.length > 0 ? sortedDemos[0].id : null,
@@ -211,11 +225,8 @@ const ThemeCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const handleDemoClick = (demo: ThemeDemo) =>
-    setActiveDemoId((prev) => (prev === demo.id ? null : demo.id));
-
   // Swap image and preview link when a demo is active
-  const currentImage = activeDemo?.image_url || imageUrl;
+  const currentImage = activeDemo?.image_url || activeDemo?.image || imageUrl;
   const previewUrl = activeDemo?.url || previewLink;
 
   // In client view: if the theme is hidden, don't render at all
@@ -232,7 +243,9 @@ const ThemeCard: React.FC<ProductCardProps> = ({
         <Image
           src={currentImage}
           alt={
-            activeDemo ? `معاينة: ${activeDemo.icon_name}` : imageAlt || name
+            activeDemo
+              ? `معاينة: ${activeDemo.icon_name || activeDemo.icon || name}`
+              : imageAlt || name
           }
           width={imageWidth}
           height={imageHeight}
@@ -312,21 +325,52 @@ const ThemeCard: React.FC<ProductCardProps> = ({
             {truncateName(name, 20)}
           </h3>
 
-          {sortedDemos.length > 1 && (
-            <div className="product-card__demos" aria-label="نماذج الثيم">
-              {sortedDemos.map((demo) => {
+          {sortedDemos.length > 0 && (
+            <div className="product-card__demos flex items-center gap-1.5 flex-wrap" aria-label="نماذج الثيم">
+              {sortedDemos.map((rawDemo, idx) => {
+                const demo = rawDemo as any;
                 const isActive = activeDemoId === demo.id;
+                const demoUrl = (demo.url || demo.link || demo.demo_url || "").trim();
+                const demoIconName = demo.icon_name || demo.iconName || demo.icon;
+                const demoImg = demo.image_url || demo.imageUrl || demo.image || demo.icon_url || demo.iconUrl;
+
                 return (
-                  <Button
-                    variant="solid"
-                    solidColor="#ffffff"
-                    key={demo.id}
-                    onClick={() => handleDemoClick(demo)}
-                    icon={resolveIcon(demo.icon_name)}
-                    className={`product-card__demo-btn size-8 !gap-0  flex justify-center items-center  demoBtn  ${isActive ? "!text-white !bg-primary" : "!text-black dark:!text-white !bg-transparent"}`}
+                  <a
+                    key={demo.id || idx}
+                    href={demoUrl || "#"}
+                    target={demoUrl ? "_blank" : undefined}
+                    rel={demoUrl ? "noopener noreferrer" : undefined}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!demoUrl) {
+                        e.preventDefault();
+                      }
+                      setActiveDemoId((prev) => (prev === demo.id ? null : demo.id));
+                    }}
+                    title={demoUrl ? `فتح الديمو: ${demoUrl}` : "ديمو"}
+                    aria-label={`ديمو ${demoIconName || idx + 1}`}
+                    className={`product-card__demo-btn size-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm border overflow-hidden cursor-pointer ${
+                      isActive
+                        ? "!text-white !bg-[var(--primary-color,#ea580c)] border-transparent scale-105 shadow-md ring-2 ring-[var(--primary-color,#ea580c)]/30"
+                        : "text-zinc-700 bg-white/90 hover:bg-zinc-100 hover:scale-110 border-gray-200 dark:text-zinc-200 dark:bg-zinc-800 dark:border-zinc-700"
+                    }`}
                   >
-                    {""}
-                  </Button>
+                    {demoImg &&
+                    typeof demoImg === "string" &&
+                    (demoImg.startsWith("http") || demoImg.startsWith("/")) ? (
+                      <div className="w-full h-full p-1 flex items-center justify-center">
+                        <img
+                          src={demoImg}
+                          alt={demoIconName || "demo icon"}
+                          className="w-full h-full object-contain p-0.5 rounded-full"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-sm flex items-center justify-center">
+                        {resolveIcon(demoIconName)}
+                      </span>
+                    )}
+                  </a>
                 );
               })}
             </div>

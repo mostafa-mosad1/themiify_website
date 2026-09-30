@@ -364,6 +364,25 @@ async function convertBase64ImagesToUrls(html: string): Promise<string> {
   return resultHtml;
 }
 
+async function urlToFile(
+  url: string,
+  filename = "image.png",
+): Promise<File | null> {
+  try {
+    if (!url || (!url.startsWith("http") && !url.startsWith("/"))) return null;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const mimeType = blob.type || "image/png";
+    const ext = mimeType.split("/")[1] || "png";
+    const finalName = filename.includes(".") ? filename : `${filename}.${ext}`;
+    return new File([blob], finalName, { type: mimeType });
+  } catch (e) {
+    console.warn("Could not convert URL to File:", e);
+    return null;
+  }
+}
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   const match = document.cookie.match(
@@ -427,6 +446,19 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
                   ? [bannerUrl]
                   : [];
 
+            const rawDemos =
+              (Array.isArray(item.demos) && item.demos.length > 0
+                ? item.demos
+                : null) ||
+              (Array.isArray(item.theme_demos) && item.theme_demos.length > 0
+                ? item.theme_demos
+                : null) ||
+              (Array.isArray(item.theme?.demos) ? item.theme.demos : null) ||
+              (Array.isArray(item.theme?.theme_demos)
+                ? item.theme.theme_demos
+                : null) ||
+              [];
+
             setThemeData({
               themeName: item.name || "",
               themePrice: item.price?.toString() || "",
@@ -434,17 +466,47 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
               categoryName: item.category_name || item.category?.name || "",
               themeImages: [],
               themeImagePreviews: existingImages,
-              demos: (item.theme_demos || item.demos || [])
-                .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+              demos: rawDemos
+                .sort(
+                  (a: any, b: any) =>
+                    (a.order ?? a.display_order ?? 0) -
+                    (b.order ?? b.display_order ?? 0),
+                )
                 .map(
-                  (d: any): Demo => ({
-                    id: d.id?.toString() || `demo-${Date.now()}`,
-                    iconName: d.icon_name ?? null,
-                    url: d.url || "",
-                    order: d.order ?? 0,
-                    imageFile: undefined,
-                    imagePreview: d.image_url || undefined,
-                  }),
+                  (d: any, index: number): Demo => {
+                    const demoImg =
+                      d.image_url ||
+                      d.image ||
+                      d.imageUrl ||
+                      d.icon_url ||
+                      d.icon_image ||
+                      d.image_path ||
+                      (typeof d.icon === "string" &&
+                      (d.icon.startsWith("http") || d.icon.startsWith("/"))
+                        ? d.icon
+                        : undefined);
+
+                    const demoIconName =
+                      d.icon_name ||
+                      d.iconName ||
+                      (typeof d.icon === "string" &&
+                      !d.icon.startsWith("http") &&
+                      !d.icon.startsWith("/")
+                        ? d.icon
+                        : null);
+
+                    return {
+                      id:
+                        d.id?.toString() ||
+                        `demo-${Date.now()}-${index}`,
+                      iconName: demoIconName ?? null,
+                      url: d.url || "",
+                      order: d.order ?? d.display_order ?? index,
+                      imageFile: undefined,
+                      imagePreview: demoImg || undefined,
+                      imageUrl: demoImg || undefined,
+                    };
+                  },
                 ),
             });
 
@@ -680,20 +742,26 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
       }
 
       // ─── Banner / Main Theme Image (API expects the file in the "banner_url" attribute) ───
-      const bannerFile =
+      let bannerFile =
         themeIntroData.introImage ||
         (themeData.themeImages && themeData.themeImages.length > 0
           ? themeData.themeImages[0]
           : null);
 
-      // Only append banner_url if a new File was selected.
-      // Backend validates: 'banner_url' => 'file|image|mimes:jpeg,png,jpg,webp' and rejects string URLs.
+      if (!bannerFile && existingIntroUrl) {
+        bannerFile = (await urlToFile(existingIntroUrl, "banner.png")) || null;
+      }
+
       if (
         bannerFile &&
         typeof bannerFile === "object" &&
         "name" in bannerFile
       ) {
         themeFormData.append("banner_url", bannerFile);
+        themeFormData.append("banner", bannerFile);
+      } else if (existingIntroUrl) {
+        themeFormData.append("existing_banner", existingIntroUrl);
+        themeFormData.append("image_url", existingIntroUrl);
       }
 
       const additionalImageFiles = (themeData.themeImages || []).filter(
@@ -716,8 +784,71 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
 
       // Demos
       if (themeData.demos && themeData.demos.length > 0) {
-        themeFormData.append("demos", JSON.stringify(themeData.demos));
-        themeFormData.append("theme_demos", JSON.stringify(themeData.demos));
+        for (let dIdx = 0; dIdx < themeData.demos.length; dIdx++) {
+          const demo = themeData.demos[dIdx];
+          const demoDbId =
+            demo.id &&
+            !String(demo.id).startsWith("demo-") &&
+            !isNaN(Number(demo.id))
+              ? Number(demo.id)
+              : undefined;
+
+          if (demoDbId) {
+            themeFormData.append(`demos[${dIdx}][id]`, String(demoDbId));
+            themeFormData.append(`theme_demos[${dIdx}][id]`, String(demoDbId));
+          }
+
+          if (demo.url?.trim()) {
+            themeFormData.append(`demos[${dIdx}][url]`, demo.url.trim());
+            themeFormData.append(`theme_demos[${dIdx}][url]`, demo.url.trim());
+          }
+
+          if (demo.iconName) {
+            themeFormData.append(`demos[${dIdx}][icon_name]`, demo.iconName);
+            themeFormData.append(`demos[${dIdx}][icon]`, demo.iconName);
+            themeFormData.append(`theme_demos[${dIdx}][icon_name]`, demo.iconName);
+            themeFormData.append(`theme_demos[${dIdx}][icon]`, demo.iconName);
+          }
+
+          const orderVal = String(demo.order ?? dIdx);
+          themeFormData.append(`demos[${dIdx}][display_order]`, orderVal);
+          themeFormData.append(`demos[${dIdx}][order]`, orderVal);
+          themeFormData.append(`theme_demos[${dIdx}][display_order]`, orderVal);
+          themeFormData.append(`theme_demos[${dIdx}][order]`, orderVal);
+
+          let demoFile = demo.imageFile;
+          const existingImg =
+            demo.imagePreview ||
+            demo.imageUrl ||
+            (demo as any).image_url ||
+            (demo as any).image;
+
+          // If no new File was picked, convert existing URL to File so Laravel $request->hasFile() succeeds
+          if (!demoFile && existingImg && typeof existingImg === "string") {
+            demoFile =
+              (await urlToFile(existingImg, `demo_${dIdx + 1}.png`)) ||
+              undefined;
+          }
+
+          if (demoFile && typeof demoFile === "object") {
+            themeFormData.append(`demos[${dIdx}][image]`, demoFile);
+            themeFormData.append(`demos[${dIdx}][image_url]`, demoFile);
+            themeFormData.append(`demos[${dIdx}][file]`, demoFile);
+            themeFormData.append(`theme_demos[${dIdx}][image]`, demoFile);
+            themeFormData.append(`theme_demos[${dIdx}][image_url]`, demoFile);
+          }
+
+          if (
+            existingImg &&
+            typeof existingImg === "string" &&
+            (existingImg.startsWith("http") || existingImg.startsWith("/"))
+          ) {
+            themeFormData.append(`demos[${dIdx}][existing_image]`, existingImg);
+            themeFormData.append(`demos[${dIdx}][imageUrl]`, existingImg);
+            themeFormData.append(`demos[${dIdx}][icon_image]`, existingImg);
+            themeFormData.append(`theme_demos[${dIdx}][existing_image]`, existingImg);
+          }
+        }
       }
 
       // User Guide / Pages

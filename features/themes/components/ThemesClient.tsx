@@ -488,7 +488,7 @@ const PageContent = () => {
           categoryId: theme.category_id || theme.category?.id || null,
           platformName: theme.platform_name || theme.platform?.name || "",
           platformId: theme.platform_id || theme.platform?.id || null,
-          demos: theme.theme_demos || [],
+          demos: theme.demos || theme.theme_demos || [],
         })) ?? []
     );
   }, [rawThemes]);
