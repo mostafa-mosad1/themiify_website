@@ -18,13 +18,7 @@ export default async function ClientDashboardPage() {
   const homeData: IHomeData = await fetchHomeData();
   const { header, timeline, steps } = homeData;
 
-  const totalSteps = timeline?.length || 5;
   const availableStepsCount = steps ? steps.length : 0;
-  // Progress line connects from step 1 through available steps to the next point
-  const filledSegments = Math.min(availableStepsCount, totalSteps - 1);
-  const totalTrackSpan = 100 - (100 / totalSteps);
-  const progressWidthPercent =
-    totalSteps > 1 ? (filledSegments / (totalSteps - 1)) * totalTrackSpan : 0;
 
   return (
     <main className="pb-10">
@@ -50,60 +44,37 @@ export default async function ClientDashboardPage() {
             </p>
           </div>
 
-          {/* Timeline Bar (الـ Stepper مطابق للتصميم ومستجيب بالكامل) */}
+          {/* Timeline Bar (الـ Stepper مطابق للتصميم ويبدأ من بداية الصفحة) */}
           {timeline && timeline.length > 0 && (
             <div className="mb-8 md:mb-14 w-full py-2">
-              <div className="w-full">
-                {/* شريط الخطوات المتصل */}
+              <div className="max-w-4xl">
                 <div className="relative flex items-center justify-between">
-                  {/* خط الربط الأساسي الرمادي العريض خلف الدوائر */}
+                  {/* الخط الرمادي المجوف الواصل بين مراكز الدوائر بنفس تأثير التصميم */}
                   <div
-                    className="absolute z-0 h-[5px] md:h-[6px] rounded-full bg-[#e2e8f0] dark:bg-slate-700 top-[18px] sm:top-[22px] md:top-[27px] -translate-y-1/2 shadow-inner"
+                    className="step-track-line absolute z-0 top-[22px] sm:top-[28px] md:top-[29px] -translate-y-1/2"
                     style={{
-                      right: `${100 / (totalSteps * 2)}%`,
-                      left: `${100 / (totalSteps * 2)}%`,
+                      right: `${100 / (timeline.length * 2)}%`,
+                      left: `${100 / (timeline.length * 2)}%`,
                     }}
                   />
 
-                  {/* خط التقدم الممتلئ العريض بتدرج لوني برتقالي غني ومتناسق */}
-                  {progressWidthPercent > 0 && (
-                    <div
-                      className="absolute z-0 h-[5px] md:h-[6px] rounded-full bg-gradient-to-l from-[#ea580c] via-[#f26a21] to-[#fb923c] top-[18px] sm:top-[22px] md:top-[27px] -translate-y-1/2 transition-all duration-700 ease-out shadow-[0_2px_8px_rgba(242,106,33,0.3)]"
-                      style={{
-                        right: `${100 / (totalSteps * 2)}%`,
-                        width: `${progressWidthPercent}%`,
-                      }}
-                    />
-                  )}
-
-                  {timeline.map((item) => {
-                    const isStepDone = item.number <= availableStepsCount;
-
-                    return (
-                      <div
-                        key={item.number}
-                        className="flex-1 flex flex-col items-center relative z-10 text-center px-0.5"
-                      >
-                        {/* دائرة الرقم بتأثير البوكس شادو الداخلي مطابق للصورة */}
-                        <div
-                          className="step-circle flex h-9 w-9 sm:h-11 sm:w-11 md:h-[54px] md:w-[54px] items-center justify-center rounded-full text-xs sm:text-sm md:text-lg font-extrabold select-none cursor-pointer transition-all duration-300"
-                        >
-                          {item.number}
-                        </div>
-
-                        {/* عنوان الخطوة */}
-                        <span
-                          className={`mt-1.5 sm:mt-2.5 md:mt-3.5 text-[9px] sm:text-xs md:text-sm font-bold text-center leading-tight transition-colors duration-300 ${
-                            isStepDone
-                              ? "text-[var(--primary-color)] dark:text-[var(--primary-color)]"
-                              : "text-[#1f2937] dark:text-gray-200"
-                          }`}
-                        >
-                          {item.title}
-                        </span>
+                  {timeline.map((item) => (
+                    <a
+                      key={item.number}
+                      href={`#step-${item.number}`}
+                      className="flex-1 flex flex-col items-center relative z-10 text-center px-0.5 sm:px-1 cursor-pointer group no-underline"
+                    >
+                      {/* دائرة الرقم بتأثير البوكس شادو الداخلي بحجم أكبر وواضح */}
+                      <div className="step-circle flex h-11 w-11 sm:h-14 sm:w-14 md:h-[58px] md:w-[58px] items-center justify-center rounded-full text-sm sm:text-base md:text-xl font-extrabold select-none transition-all duration-300 group-hover:scale-105">
+                        {item.number}
                       </div>
-                    );
-                  })}
+
+                      {/* عنوان الخطوة */}
+                      <span className="mt-2.5 sm:mt-3 md:mt-3.5 text-[11px] sm:text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200 text-center leading-tight group-hover:text-[var(--primary-color)] transition-colors">
+                        {item.title}
+                      </span>
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>
@@ -119,7 +90,8 @@ export default async function ClientDashboardPage() {
                 return (
                   <div
                     key={step.step_number}
-                    className="flex flex-col-reverse items-center gap-4 overflow-hidden rounded-2xl bg-glass p-4 transition-all duration-300 hover:shadow-lg md:flex-row md:gap-6 md:p-6"
+                    id={`step-${step.step_number}`}
+                    className="scroll-mt-24 flex flex-col-reverse items-center gap-4 overflow-hidden rounded-2xl bg-glass p-4 transition-all duration-300 hover:shadow-lg md:flex-row md:gap-6 md:p-6"
                   >
                     {/* المحتوى النصي */}
                     <div className="section-content flex w-full items-start gap-3 md:w-1/2">

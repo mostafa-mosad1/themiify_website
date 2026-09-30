@@ -26,8 +26,8 @@ export default function ThemeGrid({
   };
 
   return (
-    <div className="grid grid-cols-12 gap-4">
-      <div className="col-span-12 md:col-span-9 space-y-4">
+    <div className="grid grid-cols-12 gap-6 items-start">
+      <div className="col-span-12 lg:col-span-9 space-y-4 order-2 lg:order-1">
         <PagesTabs
           pages={pages}
           platformName={platformName}
@@ -39,8 +39,14 @@ export default function ThemeGrid({
         />
       </div>
 
-      <div className="col-span-12 md:col-span-3  space-y-4 sticky top-0 h-max">
-        <PagesDropdown pages={pages} activePage={activePage} onSectionClick={handleSectionClick} />
+      <div className="col-span-12 lg:col-span-3 space-y-6 lg:sticky lg:top-24 lg:self-start order-1 lg:order-2">
+        <PagesDropdown
+          pages={pages}
+          activePage={activePage}
+          setActivePage={setActivePage}
+          activeSection={activeSection}
+          onSectionClick={handleSectionClick}
+        />
         <YoutubeChannelCard
           videoUrl={theme.video_link}
           themeName={theme.name}
