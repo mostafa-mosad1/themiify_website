@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -76,6 +77,7 @@ export interface TablePageProps {
   addModalFields?: Field[];
   editModalFields?: Field[];
   idKey?: string;
+  tabs?: React.ReactNode;
 }
 
 // دالة مساعدة لتنسيق التاريخ
@@ -152,6 +154,7 @@ export default function TablePage({
   addModalFields = [],
   editModalFields = [],
   idKey = "id",
+  tabs,
 }: TablePageProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -240,8 +243,8 @@ export default function TablePage({
     <div className="min-h-screen bg-[var(--bg-secondary)] p-4 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="flex-1">
             <h1 className="text-3xl font-bold text-[var(--text-primary)] flex items-center gap-3">
               {pageIcon}
               <span>{pageTitle}</span>
@@ -252,6 +255,7 @@ export default function TablePage({
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
+         
             {onAdd && (
               <Modal
                 title={`إضافة ${pageTitle}`}
@@ -268,29 +272,34 @@ export default function TablePage({
           </div>
         </div>
 
-        {/* Stats Cards */}
-        {stats.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="bg-[var(--bg-primary)] p-6 rounded-2xl border border-[var(--border-color)] shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[var(--text-secondary)] text-sm mb-1">{stat.label}</p>
-                    <h3 className="text-2xl font-bold text-[var(--text-primary)]">{stat.value}</h3>
-                  </div>
-                  <div className="p-3 bg-[var(--bg-tertiary)] rounded-xl">{stat.icon}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* Table Section */}
         <div className="bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-color)] overflow-hidden shadow-sm">
+          {/* Stats Cards */}
+          {stats.length > 0 && (
+            <div className="p-6 ">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-[var(--bg-secondary)] p-6 rounded-2xl border border-[var(--border-color)] shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[var(--text-secondary)] text-sm mb-1">{stat.label}</p>
+                        <h3 className="text-2xl font-bold text-[var(--text-primary)]">{stat.value}</h3>
+                      </div>
+                      <div className="p-3 bg-[var(--bg-tertiary)] rounded-xl">{stat.icon}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Search Bar */}
+          <div>
+               {tabs && tabs}
+            </div>
           <div className="p-6 border-b border-[var(--border-color)]">
             <div className="relative max-w-md">
               <input
@@ -307,17 +316,7 @@ export default function TablePage({
             </div>
           </div>
 
-          <div className="px-2 py-4 border-b border-[var(--border-color)] bg-[var(--bg-tertiary)] flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-              قائمة {pageTitle}
-            </h2>
-            <p className="text-sm text-[var(--text-secondary)]">
-              إجمالي:{" "}
-              <span className="font-semibold text-[var(--text-primary)]">
-                {filteredData.length}
-              </span>
-            </p>
-          </div>
+    
 
           <div className="overflow-x-auto">
             <table className="w-full">

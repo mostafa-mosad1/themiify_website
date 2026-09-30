@@ -6,6 +6,17 @@ export interface IAdminAccount {
   updated_at: string;
 }
 
+export interface IEndUser {
+  id: string;
+  email: string;
+  name: string;
+  admin_id: string | null;
+  auth_id: string | null;
+  email_confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface IPaginationMeta {
   current_page: number;
   last_page: number;
