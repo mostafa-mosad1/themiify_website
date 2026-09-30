@@ -797,7 +797,28 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
               class: ImageTool,
               config: {
                 uploader: {
-                  uploadByFile(file: File) {
+                  async uploadByFile(file: File) {
+                    try {
+                      const formData = new FormData();
+                      formData.append("image", file);
+                      const res = await fetch("/api/upload-image", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const data = await res.json();
+                      if (data.url || data.file?.url) {
+                        return {
+                          success: 1,
+                          file: {
+                            url: data.url || data.file?.url,
+                          },
+                        };
+                      }
+                    } catch (err) {
+                      console.error("Image upload error:", err);
+                    }
+
+                    // Fallback to Base64 only if upload endpoint fails
                     return new Promise((resolve) => {
                       const reader = new FileReader();
                       reader.onload = (e) => {

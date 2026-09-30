@@ -310,6 +310,60 @@ function buildPagesPayload(pages: { [pageId: string]: Page }): string {
   return JSON.stringify(normalizedPages);
 }
 
+async function convertBase64ImagesToUrls(html: string): Promise<string> {
+  if (!html || !html.includes("data:image/")) return html;
+
+  const regex = /src=["'](data:image\/([a-zA-Z0-9+.-]+);base64,([^"']+))["']/g;
+  let match;
+  const matches: { full: string; dataUrl: string; mimeType: string; base64: string }[] = [];
+
+  while ((match = regex.exec(html)) !== null) {
+    matches.push({
+      full: match[0],
+      dataUrl: match[1],
+      mimeType: `image/${match[2]}`,
+      base64: match[3],
+    });
+  }
+
+  if (matches.length === 0) return html;
+
+  let resultHtml = html;
+  for (const item of matches) {
+    try {
+      const binaryString = atob(item.base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const ext = item.mimeType.split("/")[1] || "png";
+      const blob = new Blob([bytes], { type: item.mimeType });
+      const file = new File(
+        [blob],
+        `img_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`,
+        { type: item.mimeType },
+      );
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url || data.file?.url) {
+        const uploadedUrl = data.url || data.file?.url;
+        resultHtml = resultHtml.split(item.dataUrl).join(uploadedUrl);
+      }
+    } catch (err) {
+      console.error("Error converting base64 image to URL:", err);
+    }
+  }
+
+  return resultHtml;
+}
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   const match = document.cookie.match(
@@ -495,7 +549,24 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
           ? themeIntroData.introImagePreview
           : null;
 
-      const pagesPayload = buildPagesPayload(pageData);
+      // ─── Clean all section contents from base64 images and upload them as static files ───
+      const cleanedPageData: { [pageId: string]: Page } = {};
+      for (const [pId, page] of Object.entries(pageData)) {
+        const cleanedSections = await Promise.all(
+          (page.sections || []).map(async (sec) => {
+            const cleanContent = await convertBase64ImagesToUrls(
+              sec.content || "",
+            );
+            return { ...sec, content: cleanContent };
+          }),
+        );
+        cleanedPageData[pId] = { ...page, sections: cleanedSections };
+      }
+
+      // Update state with cleaned URLs so next renders don't keep base64 strings
+      setPageData(cleanedPageData);
+
+      const pagesPayload = buildPagesPayload(cleanedPageData);
       console.log("Pages payload:", pagesPayload);
       console.log("Parsed pages:", JSON.parse(pagesPayload));
 
@@ -650,7 +721,7 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
       }
 
       // User Guide / Pages
-      const pagesArray = Object.values(pageData).sort(
+      const pagesArray = Object.values(cleanedPageData).sort(
         (a, b) => (a.order || 0) - (b.order || 0),
       );
 
