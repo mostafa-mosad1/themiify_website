@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaTrash, FaTimes } from "react-icons/fa";
+import { toast } from "sonner";
 
 interface DeleteButtonProps {
   onDelete: () => Promise<any>;
@@ -176,7 +177,12 @@ export default function DeleteButton({
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await onDelete();
+      const result = await onDelete();
+      if (result?.success) {
+        toast.success(result?.message || "تم الحذف بنجاح");
+      } else {
+        toast.error(result?.error || "فشل الحذف");
+      }
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent("data-mutated", { detail: { type: "all" } })
@@ -189,6 +195,7 @@ export default function DeleteButton({
       router.refresh();
     } catch (err) {
       console.error("Error during deletion:", err);
+      toast.error("حدث خطأ أثناء الحذف");
     } finally {
       setLoading(false);
       setIsOpen(false);

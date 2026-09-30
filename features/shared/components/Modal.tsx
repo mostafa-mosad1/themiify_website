@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaTimes, FaChevronDown, FaSearch, FaCheck } from "react-icons/fa";
+import { toast } from "sonner";
 import { resolveIcon, CATEGORY_ICONS, ICON_CATEGORIES } from "@/lib/utils/iconMap";
 
 const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
@@ -244,6 +245,7 @@ export default function Modal({
     const result = await onSubmit(formDataObj);
 
     if (result.success) {
+      toast.success(isEdit ? "تم تحديث البيانات بنجاح" : "تمت الإضافة بنجاح");
       setIsOpen(false);
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("data-mutated", { detail: { type: "all" } }));
@@ -254,6 +256,7 @@ export default function Modal({
       }
       router.refresh();
     } else {
+      toast.error(result.error || `حدث خطأ أثناء ${isEdit ? "التعديل" : "الإضافة"}`);
       setError(
         result.error || `حدث خطأ أثناء ${isEdit ? "التعديل" : "الإضافة"}`,
       );

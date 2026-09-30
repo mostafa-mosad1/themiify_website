@@ -1,7 +1,7 @@
 import React from "react";
-import { MdAdminPanelSettings } from "react-icons/md";
-import { FaClock, FaUsersCog, FaUserShield } from "react-icons/fa";
-import type { IAdminAccount } from "./types";
+import { MdAdminPanelSettings, MdPeople } from "react-icons/md";
+import { FaClock, FaUsersCog, FaUserShield, FaUsers } from "react-icons/fa";
+import type { IAdminAccount, IEndUser } from "./types";
 import type { Activity } from "@/types/theme.types";
 
 export function formatAdminDate(dateString?: string): string {
@@ -39,6 +39,14 @@ export const adminAccountsTableColumns = [
   { key: "actions", label: "الإجراءات", type: "actions" as const },
 ];
 
+export const endUsersTableColumns = [
+  { key: "id", label: "ID", type: "text" as const },
+  { key: "name", label: "الاسم", type: "text" as const },
+  { key: "email", label: "البريد الإلكتروني", type: "email" as const },
+  { key: "created_at", label: "تاريخ الإنشاء", type: "date" as const },
+  { key: "actions", label: "الإجراءات", type: "actions" as const },
+];
+
 export const adminAccountAddFields = [
   {
     name: "email",
@@ -64,6 +72,13 @@ export const adminAccountEditFields = [
     required: true,
     placeholder: "admin@themiify.com",
   },
+  {
+    name: "password",
+    label: "كلمة المرور",
+    type: "password" as const,
+    required: false,
+    placeholder: "••••••••",
+  },
 ];
 
 export function formatAdminAccounts(admins: IAdminAccount[] = []) {
@@ -77,6 +92,16 @@ export function formatAdminAccounts(admins: IAdminAccount[] = []) {
   }));
 }
 
+export function formatEndUsers(users: IEndUser[] = []) {
+  return users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+  }));
+}
+
 export function formatAdminAccountsForEdit(admins: IAdminAccount[] = []) {
   return admins.map((account) => ({
     id: account.id,
@@ -85,18 +110,13 @@ export function formatAdminAccountsForEdit(admins: IAdminAccount[] = []) {
   }));
 }
 
-export function getAdminAccountsStats(admins: IAdminAccount[] = [], total?: number) {
+export function getAdminAccountsStats(admins: IAdminAccount[] = [], total?: number, usersTotal?: number) {
   const totalAdmins = total ?? admins.length;
   const superAdminsCount = admins.filter((a) => a.is_super_admin).length;
   const regularAdminsCount = admins.filter((a) => !a.is_super_admin).length;
 
-  return [
-    {
-      label: "إجمالي الحسابات",
-      value: totalAdmins,
-      icon: <MdAdminPanelSettings className="text-primary text-2xl" />,
-      color: "primary",
-    },
+  const stats = [
+
     {
       label: "سوبر أدمن",
       value: superAdminsCount,
@@ -109,16 +129,28 @@ export function getAdminAccountsStats(admins: IAdminAccount[] = [], total?: numb
       icon: <FaUsersCog className="text-blue-500 text-2xl" />,
       color: "blue",
     },
-    {
-      label: "آخر إضافة",
-      value:
-        admins && admins.length > 0
-          ? formatAdminDate(admins[0].created_at)
-          : "لا يوجد",
-      icon: <FaClock className="text-green-500 text-2xl" />,
-      color: "green",
-    },
   ];
+
+  if (usersTotal !== undefined) {
+    stats.push({
+      label: "المستخدمين",
+      value: usersTotal,
+      icon: <FaUsers className="text-orange-500 text-2xl" />,
+      color: "orange",
+    });
+  }
+
+  stats.push({
+    label: "آخر إضافة",
+    value:
+      admins && admins.length > 0
+        ? formatAdminDate(admins[0].created_at)
+        : "لا يوجد" as any,
+    icon: <FaClock className="text-green-500 text-2xl" />,
+    color: "green",
+  });
+
+  return stats;
 }
 
 // ─── إعدادات وبيانات لوحة التحكم الرئيسية (Dashboard) ─────────

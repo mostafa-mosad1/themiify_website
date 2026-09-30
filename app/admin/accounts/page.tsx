@@ -1,18 +1,22 @@
 // app/admin/accounts/page.tsx
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import TablePage from "@/components/ui/TablePage";
+import AccountsClient from "./AccountsClient";
 import UnauthorizedMessage from "@/components/ui/UnauthorizedMessage";
 import {
   fetchAdmins,
   fetchAdminById as apiFetchAdminById,
+  fetchEndUsers,
   createAdmin as apiCreateAdmin,
   updateAdmin as apiUpdateAdmin,
   deleteAdmin as apiDeleteAdmin,
+  deleteEndUser as apiDeleteEndUser,
   adminAccountsTableColumns,
+  endUsersTableColumns,
   adminAccountAddFields,
   adminAccountEditFields,
   formatAdminAccounts,
+  formatEndUsers,
   formatAdminAccountsForEdit,
   getAdminAccountsStats,
 } from "@/features/admins";
@@ -53,7 +57,8 @@ export default async function AccountsPage({ searchParams }: AccountsPageProps) 
   const page = typeof pageParam === "string" ? parseInt(pageParam, 10) || 1 : 1;
 
   const token = await getAuthTokenFromCookies();
-  const { admins, pagination } = await fetchAdmins(token, page);
+  const { admins, pagination: adminsPagination } = await fetchAdmins(token, page);
+  const { users, pagination: usersPagination } = await fetchEndUsers(token, page);
 
   // Server Actions
   async function handleCreateAccount(formData: FormData) {
@@ -87,6 +92,16 @@ export default async function AccountsPage({ searchParams }: AccountsPageProps) 
     return result;
   }
 
+  async function handleDeleteUser(id: string) {
+    "use server";
+    const serverToken = await getAuthTokenFromCookies();
+    const result = await apiDeleteEndUser(id, serverToken);
+    if (result.success) {
+      revalidatePath("/admin/accounts");
+    }
+    return result;
+  }
+
   async function getAccountDetails(id: string | number) {
     "use server";
     const serverToken = await getAuthTokenFromCookies();
@@ -103,22 +118,32 @@ export default async function AccountsPage({ searchParams }: AccountsPageProps) 
   }
 
   const formattedAccounts = formatAdminAccounts(admins);
+  const formattedUsers = formatEndUsers(users);
   const accountsForEdit = formatAdminAccountsForEdit(admins);
-  const stats = getAdminAccountsStats(admins, pagination?.total);
+  const adminsStats = getAdminAccountsStats(admins, adminsPagination?.total, usersPagination?.total);
+  const usersStats = [
+    {
+      label: "إجمالي المستخدمين",
+      value: usersPagination?.total || users.length,
+      icon: <div className="text-orange-500 text-2xl">👥</div>,
+      color: "orange",
+    },
+  ];
 
   return (
-    <TablePage
-      title="accounts"
-      description="إدارة حسابات الأدمن وإضافة وتعديل بياناتهم"
-      data={formattedAccounts}
-      editData={accountsForEdit}
-      columns={adminAccountsTableColumns}
-      stats={stats}
-      pagination={pagination}
-      itemsPerPage={15}
+    <AccountsClient
+      adminsData={formattedAccounts}
+      usersData={formattedUsers}
+      adminsPagination={adminsPagination}
+      usersPagination={usersPagination}
+      adminsColumns={adminAccountsTableColumns}
+      usersColumns={endUsersTableColumns}
+      adminsStats={adminsStats}
+      usersStats={usersStats}
       onAdd={handleCreateAccount}
       onEdit={handleUpdateAccount}
       onDelete={handleDeleteAccount}
+      onDeleteUser={handleDeleteUser}
       onFetchItem={getAccountDetails}
       addModalFields={adminAccountAddFields}
       editModalFields={adminAccountEditFields}
