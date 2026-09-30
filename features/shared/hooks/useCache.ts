@@ -25,7 +25,7 @@ export function invalidateCache(prefix?: string) {
     globalMemoryCache.clear();
   } else {
     for (const key of globalMemoryCache.keys()) {
-      if (key.startsWith(prefix)) {
+      if (key.startsWith(prefix) || key.includes(prefix)) {
         globalMemoryCache.delete(key);
       }
     }

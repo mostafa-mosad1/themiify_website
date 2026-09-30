@@ -272,13 +272,28 @@ const ThemeData = forwardRef<ThemeDataRef, ThemeDataProps>(
       if (!file || !file.type.startsWith("image/")) return;
       const preview = URL.createObjectURL(file);
       updateStep1({
-        demos: demos.map((d) => (d.id === demoId ? { ...d, imagePreview: preview } : d)),
+        demos: demos.map((d) =>
+          d.id === demoId
+            ? { ...d, imageFile: file, imagePreview: preview, imageUrl: preview }
+            : d,
+        ),
       });
       e.target.value = "";
     };
 
     const removeDemoImage = (demoId: string) => {
-      updateStep1({ demos: demos.map((d) => d.id === demoId ? { ...d, imagePreview: undefined } : d) });
+      updateStep1({
+        demos: demos.map((d) =>
+          d.id === demoId
+            ? {
+                ...d,
+                imageFile: undefined,
+                imagePreview: undefined,
+                imageUrl: undefined,
+              }
+            : d,
+        ),
+      });
     };
 
     const validateStep1 = (): string[] => {
@@ -527,38 +542,65 @@ const ThemeData = forwardRef<ThemeDataRef, ThemeDataProps>(
 
                       {/* القسم الأول: أيقون الديمو - الجزء القديم */}
                       <div>
-                        <div className="flex items-center gap-5">
-                          {demo.imagePreview ? (
-                            <div className="relative w-14 h-14 flex-shrink-0">
-                              <Image src={demo.imagePreview} alt="" fill sizes="56px" className="object-cover rounded-lg border border-[var(--border-color)]" />
-                              <button
-                                type="button"
-                                onClick={() => removeDemoImage(demo.id)}
-                                className="absolute -top-1.5 -right-1.5 bg-red-500 text-[var(--bg-primary)] rounded-full w-4 h-4 flex items-center justify-center"
-                              >
-                                <FaTimes size={8} />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="w-20 h-20 bg-[var(--bg-secondary)] rounded-2xl flex items-center justify-center flex-shrink-0">
-                              <FaImage className="text-[var(--text-tertiary)]" />
-                            </div>
-                          )}
-                          <div className="flex items-start flex-col">
-                            <p className="text-xs text-[var(--text-primary)] mb-[10px] font-normal">
-                              يرجى رفع أيقون مريحة، بحجم أقل من 100 كيلوبايت
-                            </p>
-                            <label className="cursor-pointer flex items-center justify-between w-full px-4 py-2 rounded-full shadow-[inset_0px_4px_4px_0px_#0E132C0F] border-b border-[var(--border-color)]">
-                              {!demo.imagePreview && (
-                                <span className="text-[var(--text-tertiary)] text-sm font-medium">لم يتم اختيار أيقون</span>
+                        {(() => {
+                          const previewSrc =
+                            demo.imagePreview ||
+                            demo.imageUrl ||
+                            (demo as any).image_url ||
+                            (demo as any).image;
+
+                          return (
+                            <div className="flex items-center gap-5">
+                              {previewSrc ? (
+                                <div className="relative w-14 h-14 flex-shrink-0">
+                                  <img
+                                    src={previewSrc}
+                                    alt="أيقونة الديمو"
+                                    className="w-14 h-14 object-cover rounded-lg border border-[var(--border-color)]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeDemoImage(demo.id)}
+                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-[var(--bg-primary)] rounded-full w-4 h-4 flex items-center justify-center cursor-pointer shadow hover:bg-red-600 transition"
+                                  >
+                                    <FaTimes size={8} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="w-14 h-14 bg-[var(--bg-secondary)] rounded-2xl flex items-center justify-center flex-shrink-0 border border-[var(--border-color)]">
+                                  <FaImage className="text-[var(--text-tertiary)] text-xl" />
+                                </div>
                               )}
-                              <div className={`bg-[var(--primary-color)] text-[var(--bg-primary)] text-sm px-5 py-1.5 rounded-full font-bold hover:opacity-80 duration-300 transition ${!demo.imagePreview ? "" : "w-full text-center"}`}>
-                                {demo.imagePreview ? "تغيير" : "اختر ملف"}
+                              <div className="flex items-start flex-col">
+                                <p className="text-xs text-[var(--text-primary)] mb-[10px] font-normal">
+                                  يرجى رفع أيقون مريحة، بحجم أقل من 100 كيلوبايت
+                                </p>
+                                <label className="cursor-pointer flex items-center justify-between w-full px-4 py-2 rounded-full shadow-[inset_0px_4px_4px_0px_#0E132C0F] border-b border-[var(--border-color)]">
+                                  {!previewSrc && (
+                                    <span className="text-[var(--text-tertiary)] text-sm font-medium">
+                                      لم يتم اختيار أيقون
+                                    </span>
+                                  )}
+                                  <div
+                                    className={`bg-[var(--primary-color)] text-[var(--bg-primary)] text-sm px-5 py-1.5 rounded-full font-bold hover:opacity-80 duration-300 transition ${
+                                      !previewSrc ? "" : "w-full text-center"
+                                    }`}
+                                  >
+                                    {previewSrc ? "تغيير الأيقون" : "اختر ملف"}
+                                  </div>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) =>
+                                      handleDemoImageChange(demo.id, e)
+                                    }
+                                  />
+                                </label>
                               </div>
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleDemoImageChange(demo.id, e)} />
-                            </label>
-                          </div>
-                        </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* رابط الديمو */}

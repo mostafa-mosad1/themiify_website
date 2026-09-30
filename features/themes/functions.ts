@@ -57,7 +57,11 @@ export async function fetchThemeById(
     const endpoint = token
       ? `/admin/themes/${encodeURIComponent(rawId)}`
       : `/themes/${encodeURIComponent(rawId)}`;
-    const res = await apiClient<any>(endpoint, { silent: true }, token);
+    const res = await apiClient<any>(
+      endpoint,
+      { silent: true, forceRefresh: true },
+      token,
+    );
 
     if (res.success && res.data) {
       if (res.data.theme && typeof res.data.theme === "object") {
@@ -93,7 +97,7 @@ export async function fetchThemeById(
       : `/admin/themes/${encodeURIComponent(rawId)}`;
     const fallbackRes = await apiClient<any>(
       fallbackEndpoint,
-      { silent: true },
+      { silent: true, forceRefresh: true },
       token,
     );
     if (fallbackRes.success && fallbackRes.data) {
@@ -235,7 +239,29 @@ export async function updateAdminTheme(
   message?: string;
 }> {
   try {
-    const res = await apiClient<ITheme>(
+    if (!formData.has("_method")) {
+      formData.append("_method", "PATCH");
+    }
+
+    const postRes = await apiClient<ITheme>(
+      `/admin/themes/${id}`,
+      {
+        method: "POST",
+        body: formData,
+      },
+      token,
+    );
+
+    if (postRes.success) {
+      return {
+        success: true,
+        data: postRes.data,
+        error: undefined,
+        message: postRes.message,
+      };
+    }
+
+    const patchRes = await apiClient<ITheme>(
       `/admin/themes/${id}`,
       {
         method: "PATCH",
@@ -244,31 +270,12 @@ export async function updateAdminTheme(
       token,
     );
 
-    if (!res.success) {
-      formData.set("_method", "PATCH");
-      const postRes = await apiClient<ITheme>(
-        `/admin/themes/${id}`,
-        {
-          method: "POST",
-          body: formData,
-        },
-        token,
-      );
-      if (postRes.success) {
-        return {
-          success: true,
-          data: postRes.data,
-          error: undefined,
-          message: postRes.message,
-        };
-      }
-    }
-
     return {
-      success: res.success,
-      data: res.data,
-      error: res.error || (res.success ? undefined : res.message),
-      message: res.message,
+      success: patchRes.success,
+      data: patchRes.data,
+      error:
+        patchRes.error || (patchRes.success ? undefined : patchRes.message),
+      message: patchRes.message,
     };
   } catch (error: any) {
     return {
