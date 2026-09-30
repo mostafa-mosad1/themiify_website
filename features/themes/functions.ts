@@ -3,6 +3,34 @@
 import { apiClient } from "@/lib/api/config";
 import type { ITheme, IThemesPagination } from "./types";
 
+async function enrichThemesWithDemos(
+  themes: ITheme[],
+  token?: string | null,
+): Promise<ITheme[]> {
+  if (!themes || !Array.isArray(themes) || themes.length === 0) return [];
+
+  return Promise.all(
+    themes.map(async (theme) => {
+      const rawDemos = (theme as any)?.demos || (theme as any)?.theme_demos;
+      if (Array.isArray(rawDemos) && rawDemos.length > 0) {
+        return theme;
+      }
+      try {
+        const detail = await fetchThemeById(theme.id, token);
+        if (detail && (detail.demos || (detail as any).theme_demos)) {
+          return {
+            ...theme,
+            demos: detail.demos || (detail as any).theme_demos || [],
+          };
+        }
+      } catch {
+        // ignore
+      }
+      return theme;
+    }),
+  );
+}
+
 export async function fetchThemes(params?: {
   page?: number;
   per_page?: number;
@@ -26,18 +54,21 @@ export async function fetchThemes(params?: {
     >(`/themes${queryString}`);
 
     if (res.success && res.data) {
+      let rawList: ITheme[] = [];
+      let pagination: IThemesPagination | undefined = undefined;
+
       if (Array.isArray(res.data)) {
-        return { themes: res.data };
+        rawList = res.data;
+      } else if (Array.isArray((res.data as any).data)) {
+        rawList = (res.data as any).data;
+        pagination = res.data as any;
+      } else if (Array.isArray((res.data as any).themes)) {
+        rawList = (res.data as any).themes;
+        pagination = res.data as any;
       }
-      if (Array.isArray((res.data as any).data)) {
-        return { themes: (res.data as any).data, pagination: res.data as any };
-      }
-      if (Array.isArray((res.data as any).themes)) {
-        return {
-          themes: (res.data as any).themes,
-          pagination: res.data as any,
-        };
-      }
+
+      const themes = await enrichThemesWithDemos(rawList);
+      return { themes, pagination };
     }
     return { themes: [] };
   } catch (error) {
@@ -175,16 +206,21 @@ export async function fetchAdminThemes(
       IThemesPagination | ITheme[] | { data: ITheme[] }
     >(`/admin/themes${queryString}`, {}, token);
     if (res.success && res.data) {
-      if (Array.isArray(res.data)) return { themes: res.data };
-      if (Array.isArray((res.data as any).data)) {
-        return { themes: (res.data as any).data, pagination: res.data as any };
+      let rawList: ITheme[] = [];
+      let pagination: IThemesPagination | undefined = undefined;
+
+      if (Array.isArray(res.data)) {
+        rawList = res.data;
+      } else if (Array.isArray((res.data as any).data)) {
+        rawList = (res.data as any).data;
+        pagination = res.data as any;
+      } else if (Array.isArray((res.data as any).themes)) {
+        rawList = (res.data as any).themes;
+        pagination = res.data as any;
       }
-      if (Array.isArray((res.data as any).themes)) {
-        return {
-          themes: (res.data as any).themes,
-          pagination: res.data as any,
-        };
-      }
+
+      const themes = await enrichThemesWithDemos(rawList, token);
+      return { themes, pagination };
     }
     const fallback = await fetchThemes(params);
     return fallback;

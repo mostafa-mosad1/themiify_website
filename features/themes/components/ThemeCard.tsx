@@ -151,8 +151,16 @@ const ThemeCard: React.FC<ProductCardProps> = ({
 
   // Sort demos by order
   const sortedDemos = useMemo(() => {
-    if (demos && Array.isArray(demos) && demos.length > 0) {
-      return [...demos].sort(
+    let list = demos;
+    if (typeof list === "string") {
+      try {
+        list = JSON.parse(list);
+      } catch {
+        list = [];
+      }
+    }
+    if (list && Array.isArray(list) && list.length > 0) {
+      return [...list].sort(
         (a, b) =>
           (a.order ?? a.display_order ?? 0) - (b.order ?? b.display_order ?? 0),
       );
@@ -319,15 +327,16 @@ const ThemeCard: React.FC<ProductCardProps> = ({
 
           {sortedDemos.length > 0 && (
             <div className="product-card__demos flex items-center gap-1.5 flex-wrap" aria-label="نماذج الثيم">
-              {sortedDemos.map((demo) => {
+              {sortedDemos.map((rawDemo, idx) => {
+                const demo = rawDemo as any;
                 const isActive = activeDemoId === demo.id;
-                const demoUrl = demo.url?.trim();
-                const demoIconName = demo.icon_name || demo.icon;
-                const demoImg = demo.image_url || demo.image;
+                const demoUrl = (demo.url || demo.link || demo.demo_url || "").trim();
+                const demoIconName = demo.icon_name || demo.iconName || demo.icon;
+                const demoImg = demo.image_url || demo.imageUrl || demo.image || demo.icon_url || demo.iconUrl;
 
                 return (
                   <a
-                    key={demo.id}
+                    key={demo.id || idx}
                     href={demoUrl || "#"}
                     target={demoUrl ? "_blank" : undefined}
                     rel={demoUrl ? "noopener noreferrer" : undefined}
@@ -339,7 +348,7 @@ const ThemeCard: React.FC<ProductCardProps> = ({
                       setActiveDemoId((prev) => (prev === demo.id ? null : demo.id));
                     }}
                     title={demoUrl ? `فتح الديمو: ${demoUrl}` : "ديمو"}
-                    aria-label={`ديمو ${demoIconName || ""}`}
+                    aria-label={`ديمو ${demoIconName || idx + 1}`}
                     className={`product-card__demo-btn size-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm border overflow-hidden cursor-pointer ${
                       isActive
                         ? "!text-white !bg-[var(--primary-color,#ea580c)] border-transparent scale-105 shadow-md ring-2 ring-[var(--primary-color,#ea580c)]/30"
