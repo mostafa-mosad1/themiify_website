@@ -7,105 +7,229 @@ import ThemeGrid from "./Themegrid";
 import ThemeCard from "@/components/ui/ThemeCard";
 import { fetchThemeById } from "@/lib/api/themes";
 
-function parseThemePagesMap(raw: unknown): Record<string, string> {
-  if (!raw) return {};
+interface StructuredSection {
+  id: number;
+  title: string;
+  content: string;
+  videoLink: string;
+}
 
-  if (Array.isArray(raw)) {
-    const result: Record<string, string> = {};
-    for (const page of raw as any[]) {
-      const slug = String(
-        page?.title || page?.name || page?.slug || page?.id || "page",
-      );
-      result[slug] = typeof page?.content === "string" ? page.content : JSON.stringify(page);
+interface StructuredPage {
+  slug: string;
+  name: string;
+  sections: StructuredSection[];
+}
+
+function normalizeContent(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+      .join("\n");
+  }
+  if (content && typeof content === "object") {
+    return JSON.stringify(content);
+  }
+  return "";
+}
+
+function parseThemePages(raw: unknown, themeFallback?: any): StructuredPage[] {
+  if (!raw && !themeFallback) return [];
+
+  let data = raw;
+  if (typeof raw === "string") {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = [
+        {
+          slug: "home",
+          name: "الرئيسية",
+          sections: [
+            {
+              id: 1,
+              title: "الرئيسية",
+              content: raw,
+              videoLink: "",
+            },
+          ],
+        },
+      ];
     }
-    return result;
   }
 
-  if (typeof raw === "object" && raw !== null) {
-    return Object.fromEntries(
-      Object.entries(raw as Record<string, unknown>).map(([slug, content]) => [
-        slug,
-        typeof content === "string" ? content : JSON.stringify(content ?? ""),
-      ]),
+  let result: StructuredPage[] = [];
+
+  if (Array.isArray(data)) {
+    result = data
+      .map((item: any, pageIdx: number) => {
+        // Case 1: item has sub_content array
+        if (Array.isArray(item?.sub_content)) {
+          const pageTitle =
+            item.page_title || item.title || item.name || `صفحة ${pageIdx + 1}`;
+          const sections: StructuredSection[] = item.sub_content.map(
+            (sub: any, sIdx: number) => ({
+              id: Number(sub?.id) || sIdx + 1,
+              title: sub?.title || sub?.name || `قسم ${sIdx + 1}`,
+              content: normalizeContent(sub?.content),
+              videoLink:
+                sub?.video_link || sub?.videoLink || sub?.video_url || "",
+            })
+          );
+
+          return {
+            slug: item.slug || `page-${pageIdx + 1}`,
+            name: pageTitle,
+            sections,
+          };
+        }
+
+        // Case 2: item has sections array
+        if (Array.isArray(item?.sections)) {
+          const pageTitle =
+            item.name || item.title || item.page_title || `صفحة ${pageIdx + 1}`;
+          const sections: StructuredSection[] = item.sections.map(
+            (sec: any, sIdx: number) => ({
+              id: Number(sec?.id) || sIdx + 1,
+              title: sec?.title || sec?.name || `قسم ${sIdx + 1}`,
+              content: normalizeContent(sec?.content),
+              videoLink:
+                sec?.video_link || sec?.videoLink || sec?.video_url || "",
+            })
+          );
+
+          return {
+            slug: item.slug || `page-${pageIdx + 1}`,
+            name: pageTitle,
+            sections,
+          };
+        }
+
+        // Case 3: item is a page section itself or has content string/JSON
+        const pageTitle =
+          item.page_title ||
+          item.title ||
+          item.name ||
+          item.slug ||
+          `صفحة ${pageIdx + 1}`;
+        const rawContent = item.content ?? item.sub_content ?? item.body;
+        const normalized = normalizeContent(rawContent);
+
+        try {
+          const inner = JSON.parse(normalized);
+          if (inner && typeof inner === "object" && Array.isArray(inner.sections)) {
+            return {
+              slug: item.slug || `page-${pageIdx + 1}`,
+              name: inner.name || pageTitle,
+              sections: inner.sections.map((sec: any, sIdx: number) => ({
+                id: Number(sec?.id) || sIdx + 1,
+                title: sec?.title || sec?.name || `قسم ${sIdx + 1}`,
+                content: normalizeContent(sec?.content),
+                videoLink:
+                  sec?.video_link || sec?.videoLink || sec?.video_url || "",
+              })),
+            };
+          }
+        } catch {
+          // ignore
+        }
+
+        return {
+          slug: item.slug || `page-${pageIdx + 1}`,
+          name: pageTitle,
+          sections: [
+            {
+              id: Number(item.id) || pageIdx + 1,
+              title: pageTitle,
+              content: normalized,
+              videoLink: item.video_link || item.videoLink || "",
+            },
+          ],
+        };
+      })
+      .filter((p) => p.sections.length > 0);
+  } else if (typeof data === "object" && data !== null) {
+    result = Object.entries(data as Record<string, unknown>).map(
+      ([slug, val], pageIdx) => {
+        const normalized = normalizeContent(val);
+        try {
+          const parsed = JSON.parse(normalized);
+          if (
+            parsed &&
+            typeof parsed === "object" &&
+            Array.isArray(parsed.sections)
+          ) {
+            return {
+              slug,
+              name: parsed.name || slug,
+              sections: parsed.sections.map((sec: any, sIdx: number) => ({
+                id: Number(sec?.id) || sIdx + 1,
+                title: sec?.title || `قسم ${sIdx + 1}`,
+                content: normalizeContent(sec?.content),
+                videoLink: sec?.video_link || sec?.videoLink || "",
+              })),
+            };
+          }
+        } catch {
+          // ignore
+        }
+
+        return {
+          slug,
+          name: slug.charAt(0).toUpperCase() + slug.slice(1),
+          sections: [
+            {
+              id: pageIdx + 1,
+              title: slug.charAt(0).toUpperCase() + slug.slice(1),
+              content: normalized,
+              videoLink: "",
+            },
+          ],
+        };
+      }
     );
   }
 
-  if (typeof raw === "string") {
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        const result: Record<string, string> = {};
-        for (const page of parsed as any[]) {
-          const slug = String(
-            page?.title || page?.name || page?.slug || page?.id || "page",
-          );
-          result[slug] = typeof page?.content === "string" ? page.content : JSON.stringify(page);
-        }
-        return result;
-      }
-      if (parsed && typeof parsed === "object") {
-        return Object.fromEntries(
-          Object.entries(parsed as Record<string, unknown>).map(([slug, content]) => [
-            slug,
-            typeof content === "string" ? content : JSON.stringify(content ?? ""),
-          ]),
-        );
-      }
-    } catch {
-      return { home: raw };
-    }
-
-    return { home: raw };
+  // Fallback if result is empty but theme has description or video
+  if (result.length === 0 && themeFallback) {
+    result.push({
+      slug: "overview",
+      name: "تعريف الثيم",
+      sections: [
+        {
+          id: 1,
+          title: "فيديو تعريفي",
+          content: `<p>خلّي الثيم يعكس هوية البراند بتاعتك بسهولة.</p>
+<p>من هنا تقدر تعدّل الألوان، الخطوط، والمسافات بحيث يطلع الشكل النهائي متناسق، واضح، ومتوافق مع دليل الهوية بتاعك—من غير ما تكسر التجربة أو تأثر على الاستخدام.</p>
+<p>تخصيص الثيم مش مجرد تغيير ألوان أو اختيار خط شكله حلو؛ هو خطوة أساسية علشان تخلي تجربة الاستخدام متناسقة مع هوية البراند، ومفهومة، وسهلة للمستخدمين في كل نقطة تفاعل. من خلال إعدادات التخصيص، تقدر تتحكم في شكل ومظهر الداشبورد بالكامل—من الألوان الأساسية، للخطوط، للمسافات—مع الحفاظ على تجربة استخدام ثابتة ومريحة.</p>
+<p>الفكرة الأساسية هنا إن أي تعديل بتعمله بيكون محسوب، مش عشوائي. المستخدم مش بيشوف الواجهة كعناصر منفصلة، هو بيشوف صورة كاملة، ودماغه دايماً بيدور على الاتساق.</p>`,
+          videoLink: themeFallback.video_link || themeFallback.playlist_link || "",
+        },
+        {
+          id: 2,
+          title: "وصف",
+          content: themeFallback.description
+            ? `<p>${themeFallback.description}</p>`
+            : `<p>شرح تفصيلي حول استخدام ومميزات الثيم وطريقة تطبيقه على متجرك.</p>`,
+          videoLink: "",
+        },
+        {
+          id: 3,
+          title: "مميزات الثيم",
+          content: `<p>يتميز الثيم بسرعة فائقة في التصفح، تجربة مستخدم مصممة لزيادة معدل التحويل، وتوافق تام مع كافة الهواتف والأجهزة اللوحية.</p>`,
+          videoLink: "",
+        },
+        {
+          id: 4,
+          title: "كيف تستخدم الثيم",
+          content: `<p>خطوات تفعيل وتخصيص الثيم عبر لوحة التحكم بكل سهولة ودون الحاجة لأي خبرة برمجية مسبقة.</p>`,
+          videoLink: "",
+        },
+      ],
+    });
   }
 
-  return {};
-}
-
-function parsePageContent(slug: string, rawContent: unknown) {
-  const content = typeof rawContent === "string" ? rawContent : String(rawContent ?? "");
-
-  try {
-    const parsed = JSON.parse(content);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      const sections = Array.isArray((parsed as any).sections)
-        ? (parsed as any).sections.map((section: any, index: number) => ({
-            id: Number(section?.id) || index + 1,
-            title: typeof section?.title === "string" ? section.title : `Section ${index + 1}`,
-            content: typeof section?.content === "string" ? section.content : "",
-            videoLink:
-              typeof section?.videoLink === "string"
-                ? section.videoLink
-                : typeof section?.video_link === "string"
-                  ? section.video_link
-                  : "",
-          }))
-        : [];
-
-      return {
-        name:
-          typeof (parsed as any).name === "string" && (parsed as any).name.trim()
-            ? (parsed as any).name
-            : slug.charAt(0).toUpperCase() + slug.slice(1),
-        sections,
-      };
-    }
-  } catch {
-    // Fallback
-  }
-
-  return {
-    name: slug.charAt(0).toUpperCase() + slug.slice(1),
-    sections: content.trim()
-      ? [
-          {
-            id: 1,
-            title: slug.charAt(0).toUpperCase() + slug.slice(1),
-            content,
-            videoLink: "",
-          },
-        ]
-      : [],
-  };
+  return result;
 }
 
 function getYoutubeId(url?: string | null) {
@@ -148,23 +272,12 @@ const ThemeDetailPage = async ({
     );
   }
 
-  const rawPages = (theme as any)?.theme_pages ?? (theme as any)?.pages ?? (theme as any)?.content;
-  const parsedPagesMap = parseThemePagesMap(rawPages);
-  const pages = Object.entries(parsedPagesMap)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([slug, content], index) => ({
-      id: index + 1,
-      theme_id: theme.id || id,
-      slug,
-      content,
-    }));
+  const rawPages =
+    (theme as any)?.theme_pages ??
+    (theme as any)?.pages ??
+    (theme as any)?.content;
 
-  const structuredPages = pages
-    .map((page: any) => ({
-      slug: page.slug,
-      ...parsePageContent(page.slug, page.content),
-    }))
-    .filter((page: any) => page.sections.length > 0);
+  const structuredPages = parseThemePages(rawPages, theme);
 
   const platformName = theme.platform?.name || theme.platform_name || "Salla";
   const platformLogo =
@@ -203,99 +316,130 @@ const ThemeDetailPage = async ({
   }
 
   return (
-    <div className="w-11/12 mx-auto my-6 space-y-6" dir="rtl">
+    <div className="w-11/12 mx-auto my-6 space-y-8" dir="rtl">
       {/* ── Top Bar: Back button ────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <Link
           href="/themes"
-          className="inline-flex items-center gap-2 text-sm font-medium text-black dark:text-white hover:text-primary transition-colors group"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[var(--primary-color)] transition-colors group"
         >
-          <span className="p-2 rounded-xl bg-glass border border-white/40 dark:border-white/10 group-hover:border-primary/50 transition-colors shadow-sm">
+          <span className="p-2 rounded-xl bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 group-hover:border-[var(--primary-color)]/50 transition-colors shadow-sm">
             <FaArrowRight size={12} />
           </span>
           <span>الرجوع إلى الثيمات</span>
         </Link>
       </div>
 
-      {/* ── Theme Banner ───────────────────────────────────────────────── */}
-      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-5 rounded-3xl overflow-hidden">
-        <img
-          src={theme.banner_url || mediaUrls[0] || "/images/placeholder.svg"}
-          alt={theme.name}
-          className="w-full h-auto max-h-[420px] object-cover rounded-2xl"
-        />
-      </div>
+      {/* ── Top Hero Card: Banner + Intro Video & Info ──────────────────── */}
+      <div className="bg-white dark:bg-card-dark rounded-3xl p-6 md:p-8 border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
+        {/* Slim Banner Header */}
+        <div className="w-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 max-h-[160px] md:max-h-[180px] flex items-center justify-center">
+          <img
+            src={theme.banner_url || mediaUrls[0] || "/images/placeholder.svg"}
+            alt={theme.name}
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
 
-      {introVideoUrl ? (
-        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl p-4 md:p-5">
-          <div className="flex flex-col md:flex-row items-center gap-5">
-            <a
-              href={introVideoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="relative w-full md:w-[48%] aspect-video rounded-2xl overflow-hidden bg-black group"
-            >
-              <img
-                src={
-                  getYoutubeId(introVideoUrl)
-                    ? `https://i.ytimg.com/vi/${getYoutubeId(introVideoUrl)}/hqdefault.jpg`
-                    : theme.banner_url || "/images/placeholder.svg"
-                }
-                alt={`فيديو تعريفي عن ${theme.name}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <span className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/25 transition-colors">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-xl text-2xl pl-1">
-                  ▶
-                </span>
-              </span>
-            </a>
-            <div className="w-full md:w-[52%] text-right space-y-3">
-              <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">
-                فيديو تعريفي لثيم {theme.name}
-              </h2>
-              <p className="text-sm md:text-base leading-7 text-[var(--text-secondary)]">
-                {theme.description ||
-                  `مع ثيم ${theme.name} تقدر تطلق متجرك بشكل احترافي في وقت قياسي. تصميم مرن، سرعة تحميل عالية، وتجربة مستخدم محسوبة خطوة بخطوة.`}
-              </p>
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <span className="text-[var(--text-primary)] font-semibold">
-                  <span className="inline-flex items-center gap-2">
-                    {platformLogo && (
-                      <img
-                        src={platformLogo}
-                        alt={platformName}
-                        className="h-6 w-6 object-contain"
-                      />
-                    )}
-                    <span>رقم #{theme.platform_rank || 1} على منصة {platformName}</span>
+        {/* Intro Video & Info Row */}
+        <div className="flex flex-col-reverse lg:flex-row-reverse items-center gap-8 pt-2">
+          {/* Right Info (in RTL): Title, Description, Metadata, Button */}
+          <div className="w-full lg:w-1/2 space-y-4 text-right">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white">
+              فيديو تعريفي لثيم {theme.name}
+            </h1>
+            <p className="text-sm md:text-base leading-relaxed text-gray-600 dark:text-gray-300 font-normal">
+              {theme.description ||
+                `مع ثيم ${theme.name}، تقدر تطلق متجرك على ${platformName} بشكل احترافي في وقت قياسي. تصميم مرن، سرعة تحميل عالية، وتجربة مستخدم محسوبة خطوة بخطوة... علشان عميلك يوصل للمنتج ويشتري من غير ما يفكر كتير`}
+            </p>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-200">
+                {platformLogo ? (
+                  <img
+                    src={platformLogo}
+                    alt={platformName}
+                    className="w-6 h-6 object-contain"
+                  />
+                ) : (
+                  <span className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 flex items-center justify-center text-xs">
+                    🛍
                   </span>
-                </span>
-                <span className="flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
-                  <span>({theme.rating_count || 0} تقييم)</span>
-                  <span className="flex items-center text-[#FFC62A]" aria-label={`تقييم ${theme.rating || 0} من 5`}>
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <FaStar key={index} size={13} className={index < Math.round(Number(theme.rating) || 0) ? "" : "opacity-25"} />
-                    ))}
-                  </span>
-                </span>
+                )}
+                <span>رقم #{theme.platform_rank || 1} على منصة {platformName}</span>
               </div>
+
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                <span>({theme.rating_count || 80} تقييم)</span>
+                <div className="flex items-center text-[#FFC62A]">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <FaStar
+                      key={index}
+                      size={14}
+                      className={
+                        index < Math.round(Number(theme.rating) || 5)
+                          ? "fill-current"
+                          : "opacity-30"
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
               <a
-                href={introVideoUrl}
-                target="_blank"
+                href={introVideoUrl || "#"}
+                target={introVideoUrl ? "_blank" : undefined}
                 rel="noopener noreferrer"
-                className="inline-flex rounded-full bg-orange-500 px-5 py-2.5 font-bold text-white hover:bg-orange-600 transition-colors"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r from-[#F26B21] to-[#FF8C38] text-white font-bold text-sm md:text-base shadow-[0_4px_14px_rgba(242,107,33,0.35)] hover:opacity-95 hover:scale-[1.02] transition-all cursor-pointer"
               >
-                مشاهدة الفيديو الآن
+                شاهد الفيديو الآن
               </a>
             </div>
           </div>
-        </div>
-      ) : null}
 
-      {/* ── Theme Grid Sections / Pages Content ─────────────────────────── */}
+          {/* Left Video Mockup (in RTL) */}
+          <div className="w-full lg:w-1/2">
+            <div className="relative mx-auto w-full max-w-xl group">
+              {/* Laptop Display Bezel */}
+              <div className="relative rounded-t-2xl md:rounded-t-3xl bg-[#1e232a] p-2 md:p-3 pb-0 shadow-2xl border-t border-x border-gray-700">
+                <div className="absolute top-1 md:top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-gray-600/60" />
+                <div className="relative aspect-video w-full overflow-hidden rounded-t-lg md:rounded-t-xl bg-black">
+                  {introVideoUrl ? (
+                    <iframe
+                      src={
+                        getYoutubeId(introVideoUrl)
+                          ? `https://www.youtube.com/embed/${getYoutubeId(introVideoUrl)}`
+                          : introVideoUrl
+                      }
+                      className="w-full h-full"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                  ) : (
+                    <img
+                      src={theme.banner_url || mediaUrls[0] || "/images/placeholder.svg"}
+                      alt={theme.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+              </div>
+              {/* Laptop Chin */}
+              <div className="relative h-3 md:h-4 w-full rounded-b-xl md:rounded-b-2xl bg-gradient-to-b from-[#2a303c] to-[#1a1f26] shadow-md flex items-center justify-center">
+                <div className="h-1 md:h-1.5 w-16 md:w-24 rounded-b-md bg-[#12161c]" />
+              </div>
+              {/* Bottom Shadow */}
+              <div className="mx-auto h-1.5 md:h-2 w-[94%] rounded-b-full bg-black/20 blur-sm" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Theme Grid Sections / User Guide Content ────────────────────── */}
       {structuredPages.length > 0 && (
-        <div className="mt-10">
+        <div>
           <ThemeGrid
             pages={structuredPages}
             theme={theme}

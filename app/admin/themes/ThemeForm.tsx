@@ -52,15 +52,18 @@ async function safeJsonResponse(response: Response) {
 // Types
 // ─────────────────────────────────────────────
 
+interface Section {
+  id: number;
+  dbId?: number;
+  title: string;
+  content: string;
+  videoLink?: string;
+}
+
 interface Page {
   id: string;
   name: string;
-  sections: {
-    id: number;
-    title: string;
-    content: string;
-    videoLink?: string;
-  }[];
+  sections: Section[];
   order?: number;
 }
 
@@ -123,44 +126,91 @@ function toSlug(value: string) {
     .replace(/^-|-$/g, "");
 }
 
-function normalizePage(raw: any, fallbackId: string): Page {
-  let sections = Array.isArray(raw?.sections)
-    ? raw.sections.map((section: any, index: number) => ({
-        id: Number(section?.id) || index + 1,
-        title: typeof section?.title === "string" ? section.title : "",
-        content: typeof section?.content === "string" ? section.content : "",
-        videoLink:
-          typeof section?.videoLink === "string"
-            ? section.videoLink
-            : typeof section?.video_link === "string"
-              ? section.video_link
-              : "",
-      }))
-    : [];
+function normalizeContent(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+      .join("\n");
+  }
+  if (content && typeof content === "object") {
+    return JSON.stringify(content);
+  }
+  return "";
+}
 
-  if (sections.length === 0 && typeof raw?.content === "string" && raw.content.trim()) {
-    sections = [{
-      id: 1,
-      title: raw.title || "محتوى",
-      content: raw.content,
-      videoLink: "",
-    }];
+function normalizePage(raw: any, fallbackId: string, index: number = 0): Page {
+  // Case 1: raw has sub_content array
+  if (Array.isArray(raw?.sub_content)) {
+    const pageTitle =
+      raw.page_title || raw.title || raw.name || `صفحة ${index + 1}`;
+    const pageId = raw.slug || toSlug(pageTitle) || fallbackId;
+    const sections = raw.sub_content.map((sub: any, sIdx: number) => ({
+      id: Number(sub?.id) || sIdx + 1,
+      dbId: sub?.id ? Number(sub.id) : undefined,
+      title: sub?.title || sub?.name || `قسم ${sIdx + 1}`,
+      content: normalizeContent(sub?.content),
+      videoLink:
+        sub?.video_link || sub?.videoLink || sub?.video_url || "",
+    }));
+
+    return {
+      id: pageId,
+      name: pageTitle,
+      sections,
+      order: raw.order ?? index,
+    };
   }
 
+  // Case 2: raw has sections array
+  if (Array.isArray(raw?.sections)) {
+    const pageTitle =
+      raw.page_title || raw.name || raw.title || fallbackId;
+    const pageId =
+      raw.id || raw.slug || toSlug(pageTitle) || fallbackId;
+    const sections = raw.sections.map((section: any, sIdx: number) => ({
+      id: Number(section?.id) || sIdx + 1,
+      dbId: section?.dbId || (section?.id ? Number(section.id) : undefined),
+      title: typeof section?.title === "string" ? section.title : `قسم ${sIdx + 1}`,
+      content: normalizeContent(section?.content),
+      videoLink:
+        typeof section?.videoLink === "string"
+          ? section.videoLink
+          : typeof section?.video_link === "string"
+            ? section.video_link
+            : "",
+    }));
+
+    return {
+      id: pageId,
+      name: pageTitle,
+      sections,
+      order: raw.order ?? index,
+    };
+  }
+
+  // Case 3: single section or content string
+  const pageTitle =
+    raw?.page_title || raw?.title || raw?.name || fallbackId;
+  const pageId =
+    raw?.id || raw?.slug || toSlug(pageTitle) || fallbackId;
+  const content = normalizeContent(raw?.content ?? raw?.body);
+
   return {
-    id:
-      typeof raw?.id === "string" && raw.id.trim()
-        ? raw.id
-        : typeof raw?.slug === "string" && raw.slug.trim()
-          ? raw.slug
-          : fallbackId,
-    name:
-      typeof raw?.title === "string" && raw.title.trim()
-        ? raw.title
-        : typeof raw?.name === "string" && raw.name.trim()
-          ? raw.name
-        : fallbackId.charAt(0).toUpperCase() + fallbackId.slice(1),
-    sections,
+    id: pageId,
+    name: pageTitle,
+    sections: content.trim()
+      ? [
+          {
+            id: 1,
+            dbId: raw?.id ? Number(raw.id) : undefined,
+            title: pageTitle,
+            content,
+            videoLink: raw?.video_link || raw?.videoLink || "",
+          },
+        ]
+      : [],
+    order: raw?.order ?? index,
   };
 }
 
@@ -171,12 +221,13 @@ function parsePagesMap(raw: unknown): { [pageId: string]: Page } {
       parsed = JSON.parse(raw);
     } catch {
       if (raw.trim()) {
-        const fallbackId = `page-${Date.now()}`;
+        const fallbackId = `page-1`;
         return {
           [fallbackId]: {
             id: fallbackId,
             name: "الرئيسية",
-            sections: [{ id: 1, title: "محتوى", content: raw, videoLink: "" }],
+            sections: [{ id: 1, title: "الرئيسية", content: raw, videoLink: "" }],
+            order: 0,
           },
         };
       }
@@ -189,17 +240,18 @@ function parsePagesMap(raw: unknown): { [pageId: string]: Page } {
   if (Array.isArray(parsed)) {
     parsed.forEach((item: any, index: number) => {
       const fallbackId = item?.id || item?.slug || `page-${index + 1}`;
-      const page = normalizePage(item, fallbackId);
+      const page = normalizePage(item, fallbackId, index);
       result[page.id] = page;
     });
     return result;
   }
 
   if (parsed && typeof parsed === "object") {
+    let index = 0;
     for (const [slugKey, value] of Object.entries(
       parsed as Record<string, unknown>,
     )) {
-      const fallbackId = toSlug(slugKey) || slugKey || `page-${Date.now()}`;
+      const fallbackId = toSlug(slugKey) || slugKey || `page-${index + 1}`;
 
       let pageData = value;
       if (typeof value === "string") {
@@ -221,14 +273,11 @@ function parsePagesMap(raw: unknown): { [pageId: string]: Page } {
         }
       }
 
-      if (
-        pageData &&
-        typeof pageData === "object" &&
-        !Array.isArray(pageData)
-      ) {
-        const page = normalizePage(pageData, fallbackId);
+      if (pageData && typeof pageData === "object") {
+        const page = normalizePage(pageData, fallbackId, index);
         result[page.id] = page;
       }
+      index++;
     }
   }
 
@@ -250,8 +299,10 @@ function buildPagesPayload(pages: { [pageId: string]: Page }): string {
 
     return {
       title: page.name,
+      page_title: page.name,
       slug: slug,
       content: content,
+      sections: page.sections,
       is_default: index === 0, // First page is default
     };
   });
@@ -599,15 +650,63 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
       }
 
       // User Guide / Pages
-      const parsedPages = JSON.parse(pagesPayload);
-      parsedPages.forEach((page: any, index: number) => {
-        themeFormData.append(`theme_pages[${index}][title]`, page.title);
-        themeFormData.append(`theme_pages[${index}][slug]`, page.slug);
-        themeFormData.append(`theme_pages[${index}][content]`, page.content);
-        themeFormData.append(
-          `theme_pages[${index}][default]`,
-          page.is_default ? "1" : "0",
-        );
+      const pagesArray = Object.values(pageData).sort(
+        (a, b) => (a.order || 0) - (b.order || 0),
+      );
+
+      let pageIndex = 0;
+      pagesArray.forEach((page) => {
+        const pageSlug = toSlug(page.id || page.name) || `page-${pageIndex + 1}`;
+        if (Array.isArray(page.sections) && page.sections.length > 0) {
+          page.sections.forEach((sec, sIdx) => {
+            const sectionDbId =
+              sec.dbId ||
+              (typeof sec.id === "number" && sec.id > 0 ? sec.id : undefined);
+            if (sectionDbId) {
+              themeFormData.append(
+                `theme_pages[${pageIndex}][id]`,
+                String(sectionDbId),
+              );
+            }
+            themeFormData.append(
+              `theme_pages[${pageIndex}][title]`,
+              sec.title || page.name,
+            );
+            themeFormData.append(
+              `theme_pages[${pageIndex}][page_title]`,
+              page.name,
+            );
+            themeFormData.append(
+              `theme_pages[${pageIndex}][slug]`,
+              toSlug(sec.title) || pageSlug,
+            );
+            themeFormData.append(
+              `theme_pages[${pageIndex}][content]`,
+              sec.content || "",
+            );
+            if (sec.videoLink) {
+              themeFormData.append(
+                `theme_pages[${pageIndex}][video_link]`,
+                sec.videoLink,
+              );
+            }
+            themeFormData.append(
+              `theme_pages[${pageIndex}][default]`,
+              pageIndex === 0 && sIdx === 0 ? "1" : "0",
+            );
+            pageIndex++;
+          });
+        } else {
+          themeFormData.append(`theme_pages[${pageIndex}][title]`, page.name);
+          themeFormData.append(`theme_pages[${pageIndex}][page_title]`, page.name);
+          themeFormData.append(`theme_pages[${pageIndex}][slug]`, pageSlug);
+          themeFormData.append(`theme_pages[${pageIndex}][content]`, "");
+          themeFormData.append(
+            `theme_pages[${pageIndex}][default]`,
+            pageIndex === 0 ? "1" : "0",
+          );
+          pageIndex++;
+        }
       });
       themeFormData.append("content", pagesPayload);
 
