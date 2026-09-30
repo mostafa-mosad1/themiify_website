@@ -576,6 +576,245 @@ const createVideoTool = () => {
   };
 };
 
+// ─── Custom Image Tool (Supports URL & File Upload) ───────────────────────
+const createCustomImageTool = () => {
+  return class CustomImageTool {
+    static get isReadOnlySupported() { return true; }
+    static get toolbox() {
+      return {
+        title: 'صورة',
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>'
+      };
+    }
+
+    api: any;
+    data: any;
+    readOnly: boolean;
+    nodes: { wrapper: HTMLElement | null };
+
+    constructor({ data, api, readOnly }: { data: any; api: any; readOnly: boolean }) {
+      this.api = api;
+      this.data = data || {};
+      this.readOnly = readOnly;
+      this.nodes = { wrapper: null };
+    }
+
+    render() {
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('custom-image-tool-wrapper');
+      this.nodes.wrapper = wrapper;
+
+      const imageUrl = this.data?.file?.url || this.data?.url;
+      if (imageUrl) {
+        this._showImage(imageUrl, this.data.caption);
+      } else if (!this.readOnly) {
+        this._showInput();
+      } else {
+        wrapper.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">لا توجد صورة</div>';
+      }
+
+      return wrapper;
+    }
+
+    _showInput() {
+      const container = document.createElement('div');
+      Object.assign(container.style, {
+        padding: '24px',
+        border: '2px dashed var(--border-color, #444)',
+        borderRadius: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        background: 'var(--bg-secondary, #1e1e2e)',
+        margin: '10px 0'
+      });
+
+      const title = document.createElement('div');
+      title.textContent = 'إضافة صورة (رابط URL أو رفع من الجهاز)';
+      Object.assign(title.style, { fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)', textAlign: 'right' });
+
+      const input = document.createElement('input');
+      input.placeholder = 'أدخل رابط الصورة مباشرة (https://...)...';
+      input.value = this.data?.url || this.data?.file?.url || '';
+      Object.assign(input.style, {
+        width: '100%',
+        padding: '12px 16px',
+        borderRadius: '10px',
+        border: '1px solid var(--border-color, #444)',
+        background: 'var(--bg-primary, #000)',
+        color: 'var(--text-primary, #fff)',
+        outline: 'none',
+        direction: 'ltr'
+      });
+
+      const button = document.createElement('button');
+      button.textContent = 'إضافة عبر الرابط';
+      Object.assign(button.style, {
+        padding: '10px 20px',
+        borderRadius: '8px',
+        background: '#0070FF',
+        color: 'white',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        transition: 'opacity 0.2s'
+      });
+
+      const handleAdd = () => {
+        const url = input.value.trim();
+        if (url) {
+          this.data = {
+            url: url,
+            file: { url: url },
+            caption: this.data.caption || ''
+          };
+          this._showImage(url, this.data.caption);
+        }
+      };
+
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } });
+      button.addEventListener('click', (e) => { e.preventDefault(); handleAdd(); });
+
+      const orText = document.createElement('div');
+      orText.textContent = 'أو';
+      Object.assign(orText.style, { fontSize: '12px', color: 'var(--text-secondary, #999)', textAlign: 'center', margin: '4px 0' });
+
+      const uploadBtn = document.createElement('button');
+      uploadBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 8px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        رفع صورة من جهازك
+      `;
+      Object.assign(uploadBtn.style, {
+        padding: '12px 20px',
+        borderRadius: '10px',
+        background: 'rgba(0, 112, 255, 0.1)',
+        color: '#0070FF',
+        border: '1px dashed #0070FF',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        transition: 'all 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      });
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+
+      uploadBtn.onclick = () => fileInput.click();
+
+      fileInput.onchange = async (e: any) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = 'جاري الرفع...';
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+          const response = await fetch('/api/upload-image', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || (!result.url && !result.file?.url)) {
+            throw new Error(result.error || 'فشل رفع الصورة');
+          }
+
+          const uploadedUrl = result.url || result.file?.url;
+          this.data = {
+            url: uploadedUrl,
+            file: { url: uploadedUrl },
+            caption: ''
+          };
+          this._showImage(uploadedUrl, '');
+        } catch (err: any) {
+          console.error('Upload error:', err);
+          alert('حدث خطأ أثناء رفع الصورة: ' + (err.message || 'خطأ غير معروف'));
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = 'رفع صورة من جهازك';
+        }
+      };
+
+      container.appendChild(title);
+      container.appendChild(input);
+      container.appendChild(button);
+      container.appendChild(orText);
+      container.appendChild(uploadBtn);
+
+      if (this.nodes.wrapper) {
+        this.nodes.wrapper.innerHTML = '';
+        this.nodes.wrapper.appendChild(container);
+      }
+    }
+
+    _showImage(url: string, caption?: string) {
+      const container = document.createElement('div');
+      Object.assign(container.style, {
+        position: 'relative',
+        width: '100%',
+        textAlign: 'center',
+        margin: '10px 0',
+      });
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = caption || '';
+      Object.assign(img.style, {
+        maxWidth: '100%',
+        height: 'auto',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+      });
+      container.appendChild(img);
+
+      if (!this.readOnly) {
+        const editBtn = document.createElement('button');
+        editBtn.innerHTML = '✎';
+        editBtn.title = 'تغيير الصورة أو الرابط';
+        Object.assign(editBtn.style, {
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          background: 'rgba(0,0,0,0.6)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '50%',
+          width: '32px',
+          height: '32px',
+          cursor: 'pointer',
+          zIndex: '10',
+          fontSize: '14px',
+        });
+        editBtn.onclick = (e) => {
+          e.preventDefault();
+          this._showInput();
+        };
+        container.appendChild(editBtn);
+      }
+
+      if (this.nodes.wrapper) {
+        this.nodes.wrapper.innerHTML = '';
+        this.nodes.wrapper.appendChild(container);
+      }
+    }
+
+    save() {
+      return this.data;
+    }
+  };
+};
+
 // ==========================================
 // 3. Main RichTextEditor Component
 // ==========================================
@@ -687,6 +926,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         const TextColorTool = createColorTool('text');
         const MarkerTool = createColorTool('marker');
         const VideoTool = createVideoTool();
+        const CustomImageTool = createCustomImageTool();
         const H1Tool = createHeaderLevelTool(1);
         const H2Tool = createHeaderLevelTool(2);
         const H3Tool = createHeaderLevelTool(3);
@@ -793,56 +1033,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             table: { class: Table, inlineToolbar: true },
             video: VideoTool,
             embed: Embed,
-            image: {
-              class: ImageTool,
-              config: {
-                uploader: {
-                  async uploadByFile(file: File) {
-                    try {
-                      const formData = new FormData();
-                      formData.append("image", file);
-                      const res = await fetch("/api/upload-image", {
-                        method: "POST",
-                        body: formData,
-                      });
-                      const data = await res.json();
-                      if (data.url || data.file?.url) {
-                        return {
-                          success: 1,
-                          file: {
-                            url: data.url || data.file?.url,
-                          },
-                        };
-                      }
-                    } catch (err) {
-                      console.error("Image upload error:", err);
-                    }
-
-                    // Fallback to Base64 only if upload endpoint fails
-                    return new Promise((resolve) => {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        resolve({
-                          success: 1,
-                          file: {
-                            url: e.target?.result as string,
-                          },
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    });
-                  },
-                  uploadByUrl(url: string) {
-                    return Promise.resolve({
-                      success: 1,
-                      file: {
-                        url: url,
-                      },
-                    });
-                  },
-                },
-              },
-            },
+            image: CustomImageTool,
             underline: Underline,
             inlineCode: InlineCode,
             strike: StrikeTool,
