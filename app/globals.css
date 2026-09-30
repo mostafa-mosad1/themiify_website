@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -228,33 +232,55 @@ textarea::placeholder {
 
 /* STEPPER TIMELINE STYLES - DEBOSSED INSET SHADOW */
 .step-circle {
-  background: #ffffff;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f1f5f9 100%);
   border-radius: 9999px;
   box-shadow: 
-    inset 2px 5px 10px rgba(14, 19, 44, 0.16),
-    inset -2px -4px 8px rgba(255, 255, 255, 0.9);
+    inset 2px 5px 10px rgba(14, 19, 44, 0.18),
+    inset -2px -4px 8px rgba(255, 255, 255, 1),
+    0 4px 12px rgba(14, 19, 44, 0.05);
   color: #0e132c;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .step-circle:hover {
   box-shadow: 
-    inset 2px 6px 12px rgba(14, 19, 44, 0.22),
-    inset -2px -4px 8px rgba(255, 255, 255, 1);
+    inset 2px 6px 14px rgba(14, 19, 44, 0.24),
+    inset -2px -4px 8px rgba(255, 255, 255, 1),
+    0 6px 16px rgba(14, 19, 44, 0.08);
 }
 
 html.dark .step-circle {
-  background: #141b2d;
+  background: radial-gradient(circle at 35% 35%, #1e293b 0%, #0f172a 100%);
   box-shadow: 
-    inset 2px 5px 10px rgba(0, 0, 0, 0.7),
-    inset -2px -4px 8px rgba(255, 255, 255, 0.06);
+    inset 2px 5px 10px rgba(0, 0, 0, 0.75),
+    inset -2px -4px 8px rgba(255, 255, 255, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.3);
   color: #ffffff;
 }
 
 html.dark .step-circle:hover {
   box-shadow: 
-    inset 2px 6px 12px rgba(0, 0, 0, 0.8),
-    inset -2px -4px 8px rgba(255, 255, 255, 0.1);
+    inset 2px 6px 14px rgba(0, 0, 0, 0.85),
+    inset -2px -4px 8px rgba(255, 255, 255, 0.12);
+}
+
+/* STEPPER CONNECTING TRACK LINE */
+.step-track-line {
+  height: 6px;
+  background-color: #F0F0F0;
+  border-radius: 9999px;
+  box-shadow: 0px 3.35px 3.35px 0px #E3E3E5 inset;
+}
+
+@media (min-width: 768px) {
+  .step-track-line {
+    height: 7px;
+  }
+}
+
+html.dark .step-track-line {
+  background-color: #1e293b;
+  box-shadow: 0px 3.35px 3.35px 0px rgba(0, 0, 0, 0.6) inset;
 }
 
 /*CARD BUTTONS STYLES */
