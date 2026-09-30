@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/admin/page.tsx
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -25,6 +26,7 @@ import { fetchAdminFeedbacks } from "@/lib/api/feedbacks";
 import {
   fetchAdminById,
   fetchAdmins,
+  fetchEndUsers,
   IAdminAccount,
   formatDashboardActivities,
   dashboardQuickActions,
@@ -90,6 +92,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
     blogsRes,
     logsRes,
     adminsRes,
+    usersRes,
     categoriesRes,
     platformsRes,
     supportCategories,
@@ -103,6 +106,9 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
       isSuperAdmin
         ? fetchAdmins(token)
         : Promise.resolve({ admins: [], pagination: undefined }),
+      isSuperAdmin
+        ? fetchEndUsers(token)
+        : Promise.resolve({ users: [], pagination: undefined }),
       fetchCategories(token, 1),
       fetchPlatforms(token, 1),
       fetchAdminSupportCategories(token),
@@ -121,6 +127,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
   const feedbacksCount = feedbacksRes.feedbacks.length;
   const logs = logsRes.logs || [];
   const accountsCount = adminsRes.pagination?.total ?? adminsRes.admins.length;
+  const usersCount = usersRes.pagination?.total ?? usersRes.users.length;
   const logsCount = logsRes.pagination?.total ?? logs.length;
 
   const statCards = [
@@ -136,6 +143,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
     ...(isSuperAdmin
       ? [
           { label: "حسابات الأدمن", value: accountsCount, href: "/admin/accounts", icon: <FaUsers size={23} /> },
+          { label: "المستخدمين", value: usersCount, href: "/admin/accounts", icon: <FaUsers size={23} /> },
         ]
       : []),
   ];
