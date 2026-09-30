@@ -209,15 +209,6 @@ export default function PagesTabs({
         ))}
       </div>
 
-      <div className="mb-6  md:hidden">
-        <PagesDropdown
-          pages={pages}
-          onSectionClick={handleSectionClick}
-          activePage={activePage}
-        />
-      </div>
-
-
       {/* محتوى الصفحة النشطة - يظهر تحت التبويبات أو dropdown */}
       {pages[activePage] && (
         <div className="rounded-2xl">
