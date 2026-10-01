@@ -158,7 +158,7 @@ export default function UnauthorizedMessage({
           )}
 
           {showHomeButton && (
-            <Link href={getHomeLink()}>
+            <Link prefetch={false} href={getHomeLink()}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -171,7 +171,7 @@ export default function UnauthorizedMessage({
           )}
 
           {showLoginButton && !isLoggedIn && (
-            <Link href="/login">
+            <Link prefetch={false} href="/login">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

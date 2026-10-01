@@ -42,7 +42,7 @@ export default async function EssayDetailPage({
     >
       {/* ─── Header with Back Button ─────────────────────────── */}
       <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100 dark:border-zinc-800">
-        <Link
+        <Link prefetch={false}
           href="/admin/essays"
           className="p-2 rounded-xl text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
           title="الرجوع إلى المقالات"
@@ -109,14 +109,14 @@ export default async function EssayDetailPage({
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4">
-          <Link
+          <Link prefetch={false}
             href={`/admin/essays/edit/${blog.id}`}
             className="flex-1 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
           >
             <FaEdit />
             <span>تعديل</span>
           </Link>
-          <Link
+          <Link prefetch={false}
             href="/admin/essays"
             className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-200 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
           >

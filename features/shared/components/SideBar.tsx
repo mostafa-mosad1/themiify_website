@@ -243,7 +243,7 @@ const ThemeMenuItem: React.FC<ThemeMenuItemProps> = ({
   onNavigate,
   onPlatformNavigate,
 }) => (
-  <div className="relative rounded-3xl w-[90%] mx-auto flex flex-col justify-center overflow-hidden items-center md:text-lg ">
+  <div className="relative rounded-3xl w-[90%] mx-auto flex flex-col justify-center overflow-hidden items-center text-base font-medium md:text-lg ">
     {/* Main row: theme Link label + chevron button */}
     <div
       className={`flex w-full relative z-10 flex-1 rounded-full font-medium items-center justify-between select-none transition-all duration-300 ${
@@ -388,7 +388,7 @@ const RegularMenuItem: React.FC<RegularMenuItemProps> = ({
           : "w-full !text-black dark:!text-white !shadow-[inset_2px_4px_10px_rgb(14_19_44_/_10%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%)]"
       }`}
     >
-      <div className="flex items-center gap-2 relative z-10 md:text-lg ">
+      <div className="flex items-center gap-2 relative z-10 text-base font-medium md:text-lg ">
         <span>{item.icon}</span>
         <span>{item.label}</span>
       </div>
@@ -622,6 +622,7 @@ const SideBarContent: React.FC = () => {
         <div className="mt-3 flex flex-col gap-2 border-t border-[var(--border-color)] pt-3 ">
           <Link
             href="https://themiify.com/"
+            prefetch={false}
             className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary md:hidden"
             aria-label="العودة للموقع"
           >
@@ -632,6 +633,7 @@ const SideBarContent: React.FC = () => {
             isAdminSection ? (
               <Link
                 href="/themes"
+                prefetch={false}
                 className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-secondary md:hidden"
                 aria-label="تصفح الثيمات"
               >
@@ -640,6 +642,7 @@ const SideBarContent: React.FC = () => {
             ) : (
               <Link
                 href="/admin"
+                prefetch={false}
                 className="flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-white transition-all duration-300 gradient-primary md:hidden"
                 aria-label="الداشبورد"
               >
@@ -652,7 +655,7 @@ const SideBarContent: React.FC = () => {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-red-600 transition-all duration-300 hover:bg-red-50"
+              className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-base font-medium text-[#C90000] dark:text-red-400 transition-all duration-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-300 active:scale-95 border border-transparent hover:border-red-200 dark:hover:border-red-900/50"
               aria-label="Logout"
             >
               <TbLogout size={16} />
@@ -661,11 +664,12 @@ const SideBarContent: React.FC = () => {
           ) : (
             <Link
               href="/login"
+              prefetch={false}
               onClick={() => {
                 setExpandedMenu(null);
                 closeSidebarOnMobile();
               }}
-              className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-primary transition-all duration-300 hover:bg-primary/5"
+              className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-base font-medium text-[#C90000] dark:text-red-400 transition-all duration-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-300 active:scale-95 border border-transparent hover:border-red-200 dark:hover:border-red-900/50"
               aria-label="Login"
             >
               <FaSignInAlt size={16} />

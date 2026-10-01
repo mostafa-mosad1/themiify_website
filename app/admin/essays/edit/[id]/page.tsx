@@ -46,7 +46,7 @@ export default async function EditEssayPage({ params }: EditEssayPageProps) {
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             تعذر العثور على المقالة برقم التعريف: {id}
           </p>
-          <Link
+          <Link prefetch={false}
             href="/admin/essays"
             className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
           >

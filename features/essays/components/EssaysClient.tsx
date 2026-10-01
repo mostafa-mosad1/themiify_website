@@ -84,7 +84,7 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
       transition={{ duration: 0.5 }}
       className="group relative z-0 rounded-2xl border border-white/70 bg-glass shadow-[0_8px_24px_rgba(15,23,42,0.10),0_2px_6px_rgba(15,23,42,0.06)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:z-10 hover:-translate-y-1.5 hover:border-orange-200 hover:shadow-[0_18px_36px_rgba(15,23,42,0.16),0_6px_12px_rgba(242,107,33,0.10)] dark:border-white/10"
     >
-      <Link
+      <Link prefetch={false}
         href={`/essays/${essay.id}`}
         className="no-underline flex flex-col lg:flex-row lg:p-6"
       >
@@ -138,7 +138,7 @@ const EssayCard = ({ essay }: { essay: Essay }) => {
           </p>
 
           {/* رابط قراءة المزيد */}
-          <Link href={`/essays/${essay.id}`} className="flex items-center underline text-orange-500 font-semibold hover:text-orange-600 transition-colors">
+          <Link prefetch={false} href={`/essays/${essay.id}`} className="flex items-center underline text-orange-500 font-semibold hover:text-orange-600 transition-colors">
             قراءة المقال كاملاً
           </Link>
         </div>

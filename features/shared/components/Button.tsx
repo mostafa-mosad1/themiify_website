@@ -71,7 +71,7 @@ const Button: React.FC<ButtonProps> = ({
 
   if (url && !disabled) {
     return (
-      <Link
+      <Link prefetch={false}
         href={url}
         className={`relative px-4 ${combinedClassName}`}
         onClick={onClick}

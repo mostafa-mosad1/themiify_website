@@ -46,7 +46,7 @@ export default function NotFound() {
           </h2>
           <ul className="space-y-2 text-right">
             <li>
-              <Link
+              <Link prefetch={false}
                 href="/admin/themes"
                 className="text-orange-500 hover:text-orange-600 flex items-center gap-2 justify-end group"
               >
@@ -56,7 +56,7 @@ export default function NotFound() {
             </li>
             {isAdmin && (
               <li>
-                <Link
+                <Link prefetch={false}
                   href="/admin/themes/create"
                   className="text-orange-500 hover:text-orange-600 flex items-center gap-2 justify-end group"
                 >
@@ -70,7 +70,7 @@ export default function NotFound() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
+          <Link prefetch={false}
             href="/admin"
             className="inline-flex items-center justify-center gap-2 bg-orange-500 text-white px-8 py-3 rounded-xl hover:bg-primary/80 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
           >

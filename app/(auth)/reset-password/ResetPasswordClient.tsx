@@ -59,7 +59,7 @@ export default function ResetPasswordClient() {
           className="rounded-3xl p-4 md:p-6 lg:p-8 relative z-10 w-full md:w-1/2 flex flex-col justify-center order-2 md:order-1"
         >
           {/* رجوع */}
-          <Link
+          <Link prefetch={false}
             href="/login"
             className="inline-flex justify-end items-center gap-2 text-gray-600 hover:text-primary mb-6 transition-colors"
           >
@@ -216,7 +216,7 @@ export default function ResetPasswordClient() {
               className="text-sm text-gray-500 mt-6 text-center"
             >
               ليس لديك حساب؟{" "}
-              <Link
+              <Link prefetch={false}
                 href="/register"
                 className="text-primary hover:text-primary/70 font-medium transition-colors"
               >

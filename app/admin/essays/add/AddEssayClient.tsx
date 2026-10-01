@@ -319,7 +319,7 @@ export default function AddEssayClient({
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* ─── Breadcrumb & Header ──────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
-        <Link
+       <Link prefetch={false}
           href="/admin/essays"
           className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
           title="رجوع للمقالات"

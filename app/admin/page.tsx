@@ -197,7 +197,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
 
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {statCards.map((stat) => (
-            <Link
+            <Link prefetch={false}
               key={stat.label}
               href={stat.href}
               className="group flex cursor-pointer items-center gap-4 rounded-3xl border border-[var(--border-color)]/70 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all hover:border-primary/40 hover:shadow-md dark:bg-[var(--bg-secondary)] md:p-6"
@@ -225,7 +225,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           {dashboardQuickActions.map((action) => (
-            <Link
+            <Link prefetch={false}
               key={action.href}
               href={action.href}
               className="bg-white dark:bg-[var(--bg-secondary)] border border-[var(--border-color)]/70 rounded-3xl p-7 md:p-9 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all flex flex-col items-center justify-center text-center gap-4 group cursor-pointer"

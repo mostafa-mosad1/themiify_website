@@ -1075,7 +1075,7 @@ export default function ThemeForm({ mode, themeId }: ThemeFormProps) {
         <div className="text-center bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-color)] p-8 rounded-2xl max-w-md">
           <p className="text-xl font-bold mb-2">يجب تسجيل الدخول أولاً</p>
           <p className="text-[var(--text-secondary)] mb-6">ليس لديك صلاحية</p>
-          <Link
+          <Link prefetch={false}
             href="/login"
             className="inline-block bg-[var(--primary-color)] text-[var(--bg-primary)] px-6 py-3 rounded-lg hover:opacity-80 transition-opacity"
           >
