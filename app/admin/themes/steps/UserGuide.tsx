@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useImperativeHandle, useRef } from "react";
 import dynamic from "next/dynamic";
-import { FaPlus, FaTrash, FaEdit, FaTimes, FaVideo, FaAngleUp, FaAngleDown, FaSave, FaCheck, FaExclamationTriangle } from "react-icons/fa";
-import { useAutoSaveSimple } from "@/hooks/useAutoSaveSimple";
+import { FaPlus, FaTrash, FaEdit, FaTimes, FaVideo, FaAngleUp, FaAngleDown } from "react-icons/fa";
 
 const RichTextEditor = dynamic(() => import("@/components/shared/RichTextEditor"), {
   ssr: false,
@@ -37,86 +36,22 @@ const UserGuide = React.forwardRef<{ addPendingSections: () => void; clearPendin
 
   const emptySection = (): Omit<Section, "id"> => ({ title: "", content: "", videoLink: "" });
   const [draftSections, setDraftSections] = useState<{ [pageId: string]: Omit<Section, "id"> }>({});
-  
-  // Auto-save functionality
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
-  const [restoredData, setRestoredData] = useState<any>(null);
-  
-  const themeId = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : 'unknown';
-  
-  const { manualSave, restoreData, clearSavedData, hasUnsavedData, isSaving, saveStatus: autoSaveStatus } = useAutoSaveSimple({
-    data: pageData,
-    interval: 10000, // 10 seconds
-    storageKey: `theme-editor-autosave-${themeId}`,
-    onSaveSuccess: () => setSaveStatus('saved'),
-    onSaveError: () => setSaveStatus('error'),
-    enabled: true
-  });
 
+  // تنظيف أي بيانات قديمة مخزنة في localStorage
   useEffect(() => {
-    if (pageData && Object.keys(pageData).length > 0 && (!activeTab || !pageData[activeTab])) {
-      setActiveTab(Object.keys(pageData)[0]);
-    }
-  }, [pageData]);
-
-  useEffect(() => {
-    if (showAddSection && sectionFormRef.current) {
-      sectionFormRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [showAddSection]);
-
-  useEffect(() => {
-    if (onEditingStateChange) {
-      onEditingStateChange(editingSectionId !== null || showAddSection);
-    }
-  }, [editingSectionId, showAddSection, onEditingStateChange]);
-
-  // ─── Persistence ─────────────────────────────
-  // Persistence logic removed.
-
-  // ─── Auto-save Restore Functionality ─────────────────────────────
-  useEffect(() => {
-    // Check for saved data on component mount
-    const savedData = restoreData();
-    if (savedData && Object.keys(savedData).length > 0) {
-      setRestoredData(savedData);
-      setShowRestoreDialog(true);
+    if (typeof window !== "undefined") {
+      try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith("theme-editor-autosave-") || key.includes("theme-editor-autosave"))) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
     }
   }, []);
-
-  // Update save status when isSaving changes
-  useEffect(() => {
-    if (isSaving) {
-      setSaveStatus('saving');
-    }
-  }, [isSaving]);
-
-  // Auto-hide save status after 3 seconds
-  useEffect(() => {
-    if (saveStatus === 'saved' || saveStatus === 'error') {
-      const timer = setTimeout(() => {
-        setSaveStatus('idle');
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [saveStatus]);
-
-  // Handle restore dialog
-  const handleRestoreData = () => {
-    if (restoredData) {
-      updatePageData(restoredData);
-      setShowRestoreDialog(false);
-      setRestoredData(null);
-      clearSavedData();
-    }
-  };
-
-  const handleDiscardRestore = () => {
-    setShowRestoreDialog(false);
-    setRestoredData(null);
-    clearSavedData();
-  };
 
   const getActivePage = (): Page => {
     if (!pageData || !Object.keys(pageData).length) return { id: "", name: "", sections: [] };
@@ -312,50 +247,6 @@ const UserGuide = React.forwardRef<{ addPendingSections: () => void; clearPendin
           </div>
         </div>
       )}
-
-      {/* ===== Restore Dialog ===== */}
-      {showRestoreDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleDiscardRestore} />
-          
-          <div className="relative bg-[var(--bg-primary)] rounded-3xl shadow-2xl p-8 w-96 flex flex-col items-center gap-4 z-10" dir="rtl">
-            <button onClick={handleDiscardRestore} className="absolute top-4 left-4 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition">
-              <FaTimes size={14} />
-            </button>
-            <div className="w-20 h-20 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center">
-              <FaSave size={32} className="text-primary" />
-            </div>
-            <p className="text-[var(--text-primary)] font-bold text-lg text-center">تم العثور على بيانات غير محفوظة!</p>
-            <p className="text-[var(--text-secondary)] text-sm text-center">هل تريد استعادة البيانات التي لم يتم حفظها؟</p>
-            <div className="flex gap-3 w-full mt-2">
-              <button onClick={handleDiscardRestore} className="flex-1 py-2.5 rounded-full border border-[var(--border-color)] text-[var(--text-secondary)] font-semibold hover:bg-[var(--bg-tertiary)] transition">تجاهل</button>
-              <button onClick={handleRestoreData} className="flex-1 py-2.5 rounded-full bg-primary text-[var(--bg-primary)] font-semibold hover:bg-primary-dark transition">استعادة</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===== Auto-save Status Indicator ===== */}
-      <div className="flex items-center justify-between gap-2">
-        {saveStatus === 'saving' && (
-          <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-            <FaSave className="animate-spin" />
-            <span>جاري الحفظ التلقائي...</span>
-          </div>
-        )}
-        {saveStatus === 'saved' && (
-          <div className="flex items-center gap-2 text-sm text-green-600">
-            <FaCheck />
-            <span>تم الحفظ التلقائي</span>
-          </div>
-        )}
-        {saveStatus === 'error' && (
-          <div className="flex items-center gap-2 text-sm text-red-600">
-            <FaExclamationTriangle />
-            <span>فشل الحفظ التلقائي</span>
-          </div>
-        )}
-      </div>
 
       {/* ===== Tabs ===== */}
       <div className="flex items-center gap-2 flex-wrap">
