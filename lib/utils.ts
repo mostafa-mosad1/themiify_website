@@ -52,22 +52,30 @@ export const cleanAndFormatBlogContent = (raw: string): string => {
     decoded = decodeHtml(decoded);
   }
 
-  // 3. Remove any broken tag snippets like 'p style="text-align: right;">'
-  decoded = decoded.replace(/(?:^|\s)p\s+style="[^"]*">\s*/gi, '');
-  decoded = decoded.replace(/(?:^|\s)div\s+style="[^"]*">\s*/gi, '');
+  // 3. If it contains HTML elements (like <p>, <div>, <img, <h2>, <ul>, etc.), preserve rich HTML!
+  const hasHtml = /<(?:p|div|img|h[1-6]|ul|ol|li|blockquote|pre|code|figure|table|span|a|iframe|video)\b[^>]*>/i.test(decoded);
 
-  // 4. Convert block tags to line breaks and strip all HTML tags cleanly
-  const paragraphText = decoded
-    .replace(/<\/(p|div|h[1-6]|li)>/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/style="[^"]*"/gi, '')
-    .replace(/[<>]/g, '');
+  if (hasHtml) {
+    // Clean any broken tag artifacts (e.g., bare "p style=..." without opening bracket)
+    let cleaned = decoded
+      .replace(/(?:^|\s)p\s+style="[^"]*">\s*/gi, '')
+      .replace(/(?:^|\s)div\s+style="[^"]*">\s*/gi, '');
 
-  // Split into clean paragraphs
-  const paragraphs = paragraphText
+    // Ensure images have responsive styling and don't overflow
+    cleaned = cleaned.replace(/<img\b([^>]*)>/gi, (match, attrs) => {
+      if (/class=["']/i.test(attrs)) {
+        return match.replace(/class=["']([^"']*)["']/i, 'class="$1 max-w-full h-auto rounded-xl my-4 mx-auto block shadow-sm"');
+      }
+      return `<img ${attrs} class="max-w-full h-auto rounded-xl my-4 mx-auto block shadow-sm" />`;
+    });
+
+    return cleaned;
+  }
+
+  // 4. If plain text, convert lines into clean paragraph elements
+  const paragraphs = decoded
     .split(/\n+/)
-    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .map((p) => p.trim())
     .filter((p) => p.length > 0);
 
   if (paragraphs.length === 0) {
