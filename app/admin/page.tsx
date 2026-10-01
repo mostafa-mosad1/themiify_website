@@ -135,9 +135,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
     { label: "عدد المقالات", value: articlesCount, href: "/admin/essays", icon: <HiDocumentText size={25} /> },
     { label: "أقسام الثيمات", value: categoriesCount, href: "/admin/categories", icon: <MdCategory size={25} /> },
     { label: "المنصات", value: platformsCount, href: "/admin/platforms", icon: <FaGlobe size={23} /> },
-    { label: "فئات الدعم", value: supportCategoriesCount, href: "/admin/support", icon: <MdOutlineSupportAgent size={25} /> },
     { label: "أسئلة الدعم", value: supportQuestionsCount, href: "/admin/support", icon: <FaQuestionCircle size={23} /> },
-    { label: "قنوات الدعم", value: supportChannelsCount, href: "/admin/support", icon: <FaHeadset size={23} /> },
     { label: "تقييمات المستخدمين", value: feedbacksCount, href: "/admin/form", icon: <FaStar size={23} /> },
     { label: "سجل الأنشطة", value: logsCount, href: "/admin/logs", icon: <FaHistory size={23} /> },
     ...(isSuperAdmin

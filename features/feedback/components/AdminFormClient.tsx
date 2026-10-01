@@ -394,7 +394,7 @@ const FeedbacksAdminPage = () => {
 
       {/* Filters */}
       <div className="max-w-7xl mx-auto mb-6 bg-glass rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="flex gap-4 items-center flex-wrap justify-between">
           {/* Search */}
           <div className="relative">
             <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -407,18 +407,7 @@ const FeedbacksAdminPage = () => {
             />
           </div>
 
-          {/* Filter by Status */}
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500"
-          >
-            {FEEDBACK_STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {status === "الكل" ? "جميع الحالات" : status}
-              </option>
-            ))}
-          </select>
+   
 
           {/* Filter by Rating */}
           <select
