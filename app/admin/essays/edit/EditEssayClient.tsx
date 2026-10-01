@@ -367,30 +367,28 @@ export default function EditEssayClient({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* ─── Breadcrumb & Header ──────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-6">
-          <Link prefetch={false}
+    <div
+      className="w-full bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl p-6 sm:p-8 md:p-10 border border-gray-100 dark:border-zinc-800 shadow-sm"
+      dir="rtl"
+    >
+      {/* ─── Page Header with Back Arrow ─────────────────────────── */}
+      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100 dark:border-zinc-800">
+        <Link prefetch={false}
           href="/admin/essays"
-          className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
-          title="رجوع للمقالات"
+          className="p-2 rounded-xl text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+          title="الرجوع إلى المقالات"
         >
-          <FaArrowRight size={16} />
+          <FaArrowRight className="text-lg" />
         </Link>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
-            تعديل المقالة
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            تعديل المقالة رقم #{initialData.id}
-          </p>
-        </div>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          تعديل المقالة
+        </h1>
       </div>
 
       {/* ─── Main Form ────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* ─── Row 1: Title & Category (عنوان المقالة * والتصنيف *) ──── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
               عنوان المقالة <span className="text-red-500">*</span>

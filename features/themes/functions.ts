@@ -9,26 +9,43 @@ async function enrichThemesWithDemos(
 ): Promise<ITheme[]> {
   if (!themes || !Array.isArray(themes) || themes.length === 0) return [];
 
-  return Promise.all(
-    themes.map(async (theme) => {
-      const rawDemos = (theme as any)?.demos || (theme as any)?.theme_demos;
-      if (Array.isArray(rawDemos) && rawDemos.length > 0) {
-        return theme;
-      }
-      try {
-        const detail = await fetchThemeById(theme.id, token);
-        if (detail && (detail.demos || (detail as any).theme_demos)) {
-          return {
-            ...theme,
-            demos: detail.demos || (detail as any).theme_demos || [],
-          };
+  // Skip enrichment if all themes already have demos from the API
+  const allHaveDemos = themes.every((t) => {
+    const d = (t as any)?.demos || (t as any)?.theme_demos;
+    return Array.isArray(d) && d.length > 0;
+  });
+  if (allHaveDemos) return themes;
+
+  // Concurrency-limited enrichment — max 5 parallel requests
+  const CONCURRENCY = 5;
+  const results: ITheme[] = [...themes];
+
+  for (let i = 0; i < themes.length; i += CONCURRENCY) {
+    const batch = themes.slice(i, i + CONCURRENCY);
+    const enriched = await Promise.all(
+      batch.map(async (theme, batchIdx) => {
+        const rawDemos = (theme as any)?.demos || (theme as any)?.theme_demos;
+        if (Array.isArray(rawDemos) && rawDemos.length > 0) return theme;
+        try {
+          const detail = await fetchThemeById(theme.id, token);
+          if (detail && (detail.demos || (detail as any).theme_demos)) {
+            return {
+              ...theme,
+              demos: detail.demos || (detail as any).theme_demos || [],
+            };
+          }
+        } catch {
+          // ignore
         }
-      } catch {
-        // ignore
-      }
-      return theme;
-    }),
-  );
+        return theme;
+      }),
+    );
+    enriched.forEach((t, j) => {
+      results[i + j] = t;
+    });
+  }
+
+  return results;
 }
 
 export async function fetchThemes(params?: {
@@ -67,8 +84,9 @@ export async function fetchThemes(params?: {
         pagination = res.data as any;
       }
 
-      // ✅ Return themes as-is — no N+1 individual fetches per theme
-      return { themes: rawList, pagination };
+      // Enrich themes with demos (concurrency-limited to avoid N+1 flood)
+      const themes = await enrichThemesWithDemos(rawList);
+      return { themes, pagination };
     }
     return { themes: [] };
   } catch (error) {
