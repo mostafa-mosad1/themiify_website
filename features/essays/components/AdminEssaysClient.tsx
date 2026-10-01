@@ -214,7 +214,7 @@ export default function AdminEssaysClient({
           </div>
 
           {/* Add Essay Button */}
-          <Link
+          <Link prefetch={false}
             href="/admin/essays/add"
             className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-5 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg text-sm whitespace-nowrap active:scale-95"
           >
@@ -335,7 +335,7 @@ export default function AdminEssaysClient({
                       {/* Floating Action Buttons (Edit & Delete) on top of image */}
                       <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
                         {/* Edit Button */}
-                        <Link
+                        <Link prefetch={false}
                           href={`/admin/essays/edit/${essay.id}`}
                           className="w-9 h-9 rounded-full bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                           title="تعديل المقال"
@@ -379,7 +379,7 @@ export default function AdminEssaysClient({
 
                         {/* Title */}
                         <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
-                          <Link
+                          <Link prefetch={false}
                             href={`/admin/essays/${essay.id}`}
                             className="hover:text-orange-500 transition-colors"
                           >

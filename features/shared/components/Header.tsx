@@ -59,7 +59,7 @@ const Header: React.FC = () => {
           {headerTitle}
         </p>
         {/* Logo */}
-        <Link
+        <Link prefetch={false}
           href={isAdmin ? "/admin" : "/"}
           className="flex items-center gap-2 lg:hidden"
         >
@@ -102,7 +102,7 @@ const Header: React.FC = () => {
             <span className="text-[var(--text-secondary)] font-medium text-xs md:text-sm">
               زائر
             </span>
-            <Link href="/login" className="flex items-center gap-2">
+            <Link prefetch={false} href="/login" className="flex items-center gap-2">
               <FaUser
                 size={36}
                 className="bg-[var(--bg-tertiary)] rounded-full p-2 text-[var(--text-secondary)] transition-colors duration-300 md:w-10 md:h-10"

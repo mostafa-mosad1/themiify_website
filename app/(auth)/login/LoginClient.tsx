@@ -210,7 +210,7 @@ export default function LoginClient() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="inline-block mb-4"
             >
-              <Link href="/">
+              <Link prefetch={false} href="/">
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold flex items-center justify-center gap-2">
                   <Image
                     src="/favicon.ico"
@@ -328,7 +328,7 @@ export default function LoginClient() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
             >
-              <Link
+              <Link prefetch={false}
                 href="/forgotpassword"
                 className="text-gray-500 hover:text-primary font-medium text-xs md:text-sm transition-colors mr-1 underline"
               >
@@ -369,7 +369,7 @@ export default function LoginClient() {
             className="text-sm md:text-base text-gray-500 mt-4 md:mt-6 text-center"
           >
             ليس لديك حساب؟{" "}
-            <Link
+            <Link prefetch={false}
               href="/register"
               className="text-primary hover:text-primary/70 font-medium text-xs md:text-sm transition-colors mr-1"
             >

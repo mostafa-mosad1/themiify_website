@@ -265,7 +265,7 @@ const ThemeDetailPage = async ({
           الثيم غير موجود
         </h2>
         <p className="text-gray-500 mb-6">لم يتم العثور على هذا الثيم برقم #{id}.</p>
-        <Link href="/themes">
+        <Link prefetch={false} href="/themes">
           <Button variant="primary">العودة للثيمات</Button>
         </Link>
       </div>
@@ -319,7 +319,7 @@ const ThemeDetailPage = async ({
     <div className="w-11/12 mx-auto my-6 space-y-8" dir="rtl">
       {/* ── Top Bar: Back button ────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <Link
+        <Link prefetch={false}
           href="/themes"
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[var(--primary-color)] transition-colors group"
         >

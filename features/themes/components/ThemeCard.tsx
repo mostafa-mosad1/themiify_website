@@ -241,7 +241,7 @@ const ThemeCard: React.FC<ProductCardProps> = ({
       style={author === "admin" && !visible ? { opacity: 0.45, filter: "grayscale(60%)" } : undefined}
     >
       <div className="product-card__image-wrapper">
-        <Link href={detailUrl}>
+        <Link prefetch={false} href={detailUrl}>
         <Image
           src={currentImage}
           alt={
@@ -419,7 +419,7 @@ const ThemeCard: React.FC<ProductCardProps> = ({
 
         <div className="flex items-center gap-1">
           <CiFileOn fontSize={20} />
-          <Link
+          <Link prefetch={false}
             href={detailUrl}
             className="product-card__guide-link underline text-sm font-semibold text-black dark:text-white"
             aria-label="فتح دليل المستخدم"

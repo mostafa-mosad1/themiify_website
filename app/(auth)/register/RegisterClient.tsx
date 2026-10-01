@@ -227,7 +227,7 @@ export default function RegisterClient() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="inline-block mb-4"
             >
-              <Link href="/">
+              <Link prefetch={false} href="/">
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold flex items-center justify-center gap-2">
                   <Image
                     src="/favicon.ico"
@@ -459,7 +459,7 @@ export default function RegisterClient() {
             className="text-sm md:text-base text-gray-500 mt-4 md:mt-6 text-center md:text-right"
           >
             لديك حساب بالفعل؟{" "}
-            <Link
+            <Link prefetch={false}
               href="/login"
               className="text-primary hover:text-primary/70 font-medium text-xs md:text-sm transition-colors mr-1"
             >

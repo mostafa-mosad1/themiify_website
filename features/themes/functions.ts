@@ -67,8 +67,8 @@ export async function fetchThemes(params?: {
         pagination = res.data as any;
       }
 
-      const themes = await enrichThemesWithDemos(rawList);
-      return { themes, pagination };
+      // ✅ Return themes as-is — no N+1 individual fetches per theme
+      return { themes: rawList, pagination };
     }
     return { themes: [] };
   } catch (error) {

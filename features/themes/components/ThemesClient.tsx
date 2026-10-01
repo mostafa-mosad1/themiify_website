@@ -690,7 +690,7 @@ const PageContent = () => {
               const isStepDone = item.number <= currentStep;
 
               return (
-                <Link
+                <Link prefetch={false}
                   key={item.number}
                   href={`/#step-${item.number}`}
                   className="flex-1 flex flex-col items-center relative z-10 text-center px-0.5 sm:px-1 cursor-pointer group no-underline"

@@ -196,7 +196,7 @@ const NoResults = ({
       >
         تحديث الصفحة
       </motion.button>
-      <Link href="/admin/themes/create">
+      <Link prefetch={false} href="/admin/themes/create">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -806,7 +806,7 @@ const Page = () => {
                   أضف أول ثيم الآن
                 </Button>
               ) : (
-                <Link
+                <Link prefetch={false}
                   href="/login"
                   className="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-primary/80 transition-colors"
                 >

@@ -99,7 +99,7 @@ function Sidebar({
                 const titleText =
                   essay.title || essay.name || "مقال بدون عنوان";
                 return (
-                  <Link
+                  <Link prefetch={false}
                     key={essay.id}
                     href={`/essays/${essay.id}`}
                     className="group flex items-center gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors"
@@ -200,7 +200,7 @@ function RelatedArticles({
             <p className="text-sm text-[var(--text-secondary)] line-clamp-2 leading-relaxed mb-3">
               {stripHtml(essay.description || essay.content || "")}
             </p>
-            <Link
+            <Link prefetch={false}
               href={`/essays/${essay.id}`}
               className="text-primary font-medium text-sm hover:underline"
             >
@@ -211,7 +211,7 @@ function RelatedArticles({
           {/* Thumbnail — left side */}
           <div className="relative w-full md:w-[360px] h-[180px] md:h-[172px] flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
             {img && typeof img === "string" && !img.includes("[object") ? (
-              <Link href={`/essays/${essay.id}`} className="w-full h-full">
+              <Link prefetch={false} href={`/essays/${essay.id}`} className="w-full h-full">
                 <img
                   src={img}
                   alt={titleText}
@@ -375,7 +375,7 @@ export default function EssayDetailClient() {
       className="w-full max-w-7xl mx-auto bg-glass rounded-3xl px-3 py-4 sm:px-4 md:py-6 md:pl-4 md:w-11/12"
     >
       {/* زر الرجوع */}
-      <Link
+      <Link prefetch={false}
         href="/essays"
         className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-primary transition-colors mb-6 group px-4"
       >

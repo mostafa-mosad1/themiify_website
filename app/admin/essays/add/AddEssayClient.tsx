@@ -283,7 +283,7 @@ export default function AddEssayClient({
     >
       {/* ─── Page Header with Back Arrow ─────────────────────────── */}
       <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100 dark:border-zinc-800">
-        <Link
+        <Link prefetch={false}
           href="/admin/essays"
           className="p-2 rounded-xl text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
           title="الرجوع إلى المقالات"
