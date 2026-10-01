@@ -39,3 +39,18 @@ export interface ILoginResponse {
   user?: IUser;
   admin?: IUser;
 }
+
+export interface IRegisterResponse {
+  token?: string;
+  role?: string;
+  is_admin?: boolean;
+  is_super_admin?: boolean;
+  user?: IUser;
+  admin?: IUser;
+}
+
+export interface IRegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+}
