@@ -101,9 +101,7 @@ export function parseUserDataFromStorage(): UserData {
                 : "مستخدم");
 
         const isLoggedIn = Boolean(
-          hasValidToken ||
-          parsed.isLoggedIn === true ||
-          userEmail !== ""
+          hasValidToken || parsed.isLoggedIn === true || userEmail !== "",
         );
 
         if (isLoggedIn) {
@@ -184,6 +182,36 @@ export async function loginUser(credentials: {
     return {
       success: false,
       error: error?.message || "فشل تسجيل الدخول",
+    };
+  }
+}
+
+export async function registerUser(credentials: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<{
+  success: boolean;
+  data?: import("./types").IRegisterResponse;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    const { apiClient } = await import("@/lib/api/config");
+    const res = await apiClient<import("./types").IRegisterResponse>(
+      "/user/register",
+      {
+        method: "POST",
+        body: JSON.stringify(credentials),
+        skipAuth: true,
+      },
+    );
+
+    return res;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || "فشل إنشاء الحساب",
     };
   }
 }

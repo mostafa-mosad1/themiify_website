@@ -9,6 +9,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import BannerImage from "./BannerImage";
 import Button from "@/components/ui/Button";
+import { registerUser } from "@/lib/api/auth";
 
 export default function RegisterClient() {
   const router = useRouter();
@@ -56,23 +57,93 @@ export default function RegisterClient() {
     }
 
     try {
-      // Save local session / user registration
-      const sessionData = {
-        isLoggedIn: true,
-        userId: "user-" + Date.now(),
-        email: formData.email,
-        userName: formData.name,
-        userRole: "end_user",
-      };
+      const res = await registerUser({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
-      document.cookie = `authToken=${sessionData.userId}; path=/; max-age=604800; SameSite=Lax`;
-      document.cookie = `localAuthSession=${encodeURIComponent(JSON.stringify(sessionData))}; path=/; max-age=604800; SameSite=Lax`;
+      if (!res.success) {
+        throw new Error(res.error || res.message || "فشل إنشاء الحساب");
+      }
 
-      toast.success("تم إنشاء الحساب بنجاح!");
-      window.location.href = "/";
-    } catch (err: any) {
-      const errorMessage = err?.message || "حدث خطأ غير متوقع";
+      const responseData = res.data;
+      const user = responseData?.admin || responseData?.user;
+      const token = responseData?.token;
+      const responseRole = String(
+        responseData?.role || user?.role || "",
+      ).toLowerCase();
+      const isSuperAdmin = Boolean(
+        responseData?.is_super_admin ||
+        user?.is_super_admin ||
+        responseRole === "super_admin",
+      );
+      const isAdmin = Boolean(
+        isSuperAdmin ||
+        responseData?.is_admin ||
+        responseRole === "admin" ||
+        user?.is_admin ||
+        Boolean(responseData?.admin) ||
+        user?.role === "admin" ||
+        user?.role === "super_admin",
+      );
+
+      if (token) {
+        const resolvedRole = isSuperAdmin
+          ? "super_admin"
+          : isAdmin
+            ? "admin"
+            : "user";
+
+        const sessionPayload = {
+          userName: user?.name || user?.userName || formData.name.trim(),
+          userAvatar: user?.avatar || "",
+          email: user?.email || formData.email.trim(),
+          isAdmin,
+          is_super_admin: isSuperAdmin,
+          userRole: resolvedRole,
+          isLoggedIn: true,
+        };
+
+        document.cookie = `authToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+        document.cookie = `bearer_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+        if (isAdmin) {
+          document.cookie = `adminToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+        } else {
+          document.cookie = "adminToken=; path=/; max-age=0; samesite=lax";
+        }
+        document.cookie = `localAuthSession=${encodeURIComponent(JSON.stringify(sessionPayload))}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+
+        try {
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("bearer_token", token);
+          if (isAdmin) localStorage.setItem("adminToken", token);
+          else localStorage.removeItem("adminToken");
+          localStorage.setItem(
+            "localAuthSession",
+            JSON.stringify(sessionPayload),
+          );
+          localStorage.setItem(
+            "userData",
+            JSON.stringify({
+              ...(user ?? {}),
+              ...sessionPayload,
+            }),
+          );
+        } catch {}
+
+        toast.success("تم إنشاء الحساب بنجاح!");
+        window.location.href = isAdmin ? "/admin" : "/";
+        return;
+      }
+
+      toast.success("تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن");
+      router.push("/login?registered=true");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "حدث خطأ غير متوقع";
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -136,7 +207,10 @@ export default function RegisterClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 lg:p-8" dir="rtl">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 lg:p-8"
+      dir="rtl"
+    >
       <div className="flex flex-col md:flex-row h-auto w-full max-w-6xl bg-white p-6 md:p-8 rounded-3xl bg-glass shadow-2xl">
         {/* قسم الفورم */}
         <motion.div
@@ -178,7 +252,9 @@ export default function RegisterClient() {
             <h2 className="text-xl md:text-2xl lg:text-3xl font-bold">
               إنشاء حساب جديد
             </h2>
-            <p className="text-sm md:text-base mt-1 text-gray-500">انضم إلى مجتمع Themify</p>
+            <p className="text-sm md:text-base mt-1 text-gray-500">
+              انضم إلى مجتمع Themify
+            </p>
           </motion.div>
 
           {/* رسالة الخطأ */}
@@ -205,7 +281,9 @@ export default function RegisterClient() {
                 width={20}
                 height={20}
               />
-              <span className="font-medium text-sm md:text-base">التسجيل باستخدام Google</span>
+              <span className="font-medium text-sm md:text-base">
+                التسجيل باستخدام Google
+              </span>
             </button>
 
             <div className="flex items-center gap-3 my-4">
@@ -293,7 +371,10 @@ export default function RegisterClient() {
                     className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors cursor-pointer"
                   >
                     {showPassword ? (
-                      <FaEyeSlash size={16} className="md:w-[18px] md:h-[18px]" />
+                      <FaEyeSlash
+                        size={16}
+                        className="md:w-[18px] md:h-[18px]"
+                      />
                     ) : (
                       <FaEye size={16} className="md:w-[18px] md:h-[18px]" />
                     )}
@@ -331,7 +412,10 @@ export default function RegisterClient() {
                     className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors cursor-pointer"
                   >
                     {showConfirmPassword ? (
-                      <FaEyeSlash size={16} className="md:w-[18px] md:h-[18px]" />
+                      <FaEyeSlash
+                        size={16}
+                        className="md:w-[18px] md:h-[18px]"
+                      />
                     ) : (
                       <FaEye size={16} className="md:w-[18px] md:h-[18px]" />
                     )}
