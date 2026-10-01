@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuill } from "react-quilljs";
+import dynamic from "next/dynamic";
 import { FaArrowRight, FaImage, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import {
@@ -12,6 +12,18 @@ import {
 } from "@/lib/api/support-categories";
 import { updateAdminBlog } from "@/lib/api/blogs";
 import { invalidateCache } from "@/lib/hooks/useCache";
+
+const RichTextEditor = dynamic(
+  () => import("@/components/shared/RichTextEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[220px] bg-gray-50 dark:bg-zinc-800 rounded-2xl animate-pulse flex items-center justify-center text-gray-400 text-sm">
+        جاري تحميل المحرر...
+      </div>
+    ),
+  }
+);
 
 interface EditEssayClientProps {
   onSave?: (formData: FormData) => Promise<{ success: boolean; error?: string }>;
@@ -108,23 +120,6 @@ export default function EditEssayClient({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Quill Editor Configuration
-  const { quill, quillRef } = useQuill({
-    modules: {
-      toolbar: [
-        ["image", "code-block", "link"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        [{ header: [1, 2, 3, 4, 5, false] }],
-        [{ align: [] }],
-        [{ size: ["small", false, "large", "huge"] }],
-        ["strike", "underline", "italic", "bold"],
-        [{ color: [] }, { background: [] }],
-      ],
-    },
-    placeholder: "أضف تفاصيل المقال هنا...",
-    theme: "snow",
-  });
-
   // مزامنة البيانات عند تحديث initialData من الخادم
   useEffect(() => {
     setTitle(initialData.title || initialData.name || "");
@@ -135,27 +130,62 @@ export default function EditEssayClient({
     if (initialData.category_id) {
       setCategoryId(String(initialData.category_id));
     }
-    if (quill && initialData.content) {
-      quill.root.innerHTML = initialData.content;
-    }
-  }, [initialData, quill]);
+  }, [initialData]);
 
-  // Set initial content in Quill editor
-  useEffect(() => {
-    if (quill && initialData.content) {
-      quill.root.innerHTML = initialData.content;
-      setContent(initialData.content);
-    }
-  }, [quill, initialData.content]);
+  // Helper to convert any pasted/inserted Base64 images to static uploaded URLs
+  const convertBase64ImagesToUrls = async (html: string): Promise<string> => {
+    if (!html || !html.includes("data:image/")) return html;
 
-  // Listen to Quill changes
-  useEffect(() => {
-    if (quill) {
-      quill.on("text-change", () => {
-        setContent(quill.root.innerHTML);
+    const regex = /src=["'](data:image\/([a-zA-Z0-9+.-]+);base64,([^"']+))["']/g;
+    let match;
+    const matches: { full: string; dataUrl: string; mimeType: string; base64: string }[] = [];
+
+    while ((match = regex.exec(html)) !== null) {
+      matches.push({
+        full: match[0],
+        dataUrl: match[1],
+        mimeType: `image/${match[2]}`,
+        base64: match[3],
       });
     }
-  }, [quill]);
+
+    if (matches.length === 0) return html;
+
+    let resultHtml = html;
+    for (const item of matches) {
+      try {
+        const binaryString = atob(item.base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const ext = item.mimeType.split("/")[1] || "png";
+        const blob = new Blob([bytes], { type: item.mimeType });
+        const file = new File(
+          [blob],
+          `img_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`,
+          { type: item.mimeType }
+        );
+
+        const fd = new FormData();
+        fd.append("image", file);
+
+        const res = await fetch("/api/upload-image", {
+          method: "POST",
+          body: fd,
+        });
+        const data = await res.json();
+        if (data.url || data.file?.url) {
+          const uploadedUrl = data.url || data.file?.url;
+          resultHtml = resultHtml.split(item.dataUrl).join(uploadedUrl);
+        }
+      } catch (err) {
+        console.error("Error converting base64 image to URL:", err);
+      }
+    }
+
+    return resultHtml;
+  };
 
   // Image handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -230,13 +260,13 @@ export default function EditEssayClient({
     }
 
     if (description.trim().length > 255) {
-      toast.error(`الوصف الفرعي طويل جداً (${description.trim().length} حرف). الحد الأقصى المسموح به حالياً لقاعدة البيانات هو 255 حرفاً.`);
+      toast.error(
+        `الوصف الفرعي طويل جداً (${description.trim().length} حرف). الحد الأقصى المسموح به حالياً لقاعدة البيانات هو 255 حرفاً.`
+      );
       return;
     }
 
-    const editorHtml = (quill ? quill.root.innerHTML : "") || content;
-    const editorText = quill ? quill.getText().trim() : "";
-    if (!editorText && !editorHtml.trim()) {
+    if (!content || !content.trim() || content === "<p></p>" || content === "<p><br></p>") {
       toast.error("يرجى كتابة محتوى المقالة");
       return;
     }
@@ -247,13 +277,16 @@ export default function EditEssayClient({
     try {
       const token = getAuthToken();
 
+      // Clean all base64 images from content and upload as static files
+      const cleanContent = await convertBase64ImagesToUrls(content);
+
       const formData = new FormData();
       formData.append("original_id", String(initialData.id));
       formData.append("name", title.trim());
       formData.append("title", title.trim());
       formData.append("category_id", String(categoryId));
       formData.append("description", description.trim());
-      formData.append("content", editorHtml);
+      formData.append("content", cleanContent);
       formData.delete("category");
 
       // فقط إذا تم اختيار File جديد نرسله كـ image
@@ -295,6 +328,7 @@ export default function EditEssayClient({
       }
 
       if (res.success) {
+        // تفريغ كاش المقالات
         if (typeof window !== "undefined") {
           try {
             for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -309,65 +343,63 @@ export default function EditEssayClient({
                 localStorage.removeItem(k);
               }
             }
-            window.dispatchEvent(
-              new CustomEvent("data-mutated", { detail: { type: "all" } })
-            );
-            window.dispatchEvent(new Event("blogs-updated"));
           } catch (e) {
-            console.warn("Could not clear cache:", e);
+            console.error("Failed to clear essays cache", e);
           }
         }
-
-        invalidateCache("admin_blogs");
-        invalidateCache("blogs");
         invalidateCache("admin_essays");
-        invalidateCache("essays");
+        invalidateCache("cache_essays");
+        invalidateCache("admin_blogs");
+        invalidateCache("cache_blogs");
 
-        toast.success("✅ تم تعديل المقالة بنجاح!", { id: toastId });
-        router.refresh();
+        toast.success("تم تحديث المقالة بنجاح", { id: toastId });
         router.push("/admin/essays");
+        router.refresh();
       } else {
-        toast.error(res.error || "حدث خطأ أثناء تعديل المقالة", { id: toastId });
+        toast.error(res.error || "فشل تحديث المقالة", { id: toastId });
       }
     } catch (err: unknown) {
-      console.error("Error submitting essay:", err);
-      toast.error(`❌ فشل الإرسال: ${getErrorMessage(err)}`, { id: toastId });
+      console.error("Error updating essay:", err);
+      toast.error(getErrorMessage(err), { id: toastId });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="w-full bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl p-6 sm:p-8 md:p-10 border border-gray-100 dark:border-zinc-800 shadow-sm"
-      dir="rtl"
-    >
-      {/* ─── Page Header with Back Arrow ─────────────────────────── */}
-      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100 dark:border-zinc-800">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* ─── Breadcrumb & Header ──────────────────────────────────── */}
+      <div className="flex items-center gap-3 mb-6">
         <Link
           href="/admin/essays"
-          className="p-2 rounded-xl text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-          title="الرجوع إلى المقالات"
+          className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
+          title="رجوع للمقالات"
         >
-          <FaArrowRight className="text-lg" />
+          <FaArrowRight size={16} />
         </Link>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-          تعديل المقالة
-        </h1>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+            تعديل المقالة
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            تعديل المقالة رقم #{initialData.id}
+          </p>
+        </div>
       </div>
 
+      {/* ─── Main Form ────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ─── Row 1: Title & Category ─────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ─── Row 1: Title & Category (عنوان المقالة * والتصنيف *) ──── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
-              عنوان رئيسي <span className="text-red-500">*</span>
+              عنوان المقالة <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="ادخل عنوان مناسب للمقالة"
+              placeholder="مثال: كيفية اختيار القالب المناسب لمتجرك"
               required
               className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-[inset_0px_1px_2px_0px_rgba(0,0,0,0.04)]"
             />
@@ -426,7 +458,7 @@ export default function EditEssayClient({
           )}
         </div>
 
-        {/* ─── Row 4: Image Upload Dropzone (صورة المقالة *) ────────── */}
+        {/* ─── Row 3: Image Upload Dropzone (صورة المقالة) ────────── */}
         <div>
           <label className="block text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
             صورة المقالة
@@ -467,7 +499,7 @@ export default function EditEssayClient({
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {imageFile?.name || "صورة التيم ومز"} (
+                    {imageFile?.name || "صورة المقالة"} (
                     {imageFile ? (imageFile.size / 1024).toFixed(1) : "500"} KB)
                   </span>
                   <button
@@ -502,46 +534,16 @@ export default function EditEssayClient({
           </div>
         </div>
 
-        {/* ─── Row 5: Rich Text Editor (أضف المقالة هنا *) ──────────── */}
+        {/* ─── Row 4: Rich Text Editor (محتوى المقالة *) ──────────── */}
         <div>
           <label className="block text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
-            صف المقالة هنا <span className="text-red-500">*</span>
+            محتوى المقالة <span className="text-red-500">*</span>
           </label>
-          <div className="rounded-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden bg-white dark:bg-zinc-800 shadow-[inset_0px_2px_4px_0px_rgba(0,0,0,0.04)] relative">
-            <div ref={quillRef} className="min-h-[220px]" />
-
-            {/* In-editor Add Action Button */}
-            <div className="p-3 border-t border-gray-100 dark:border-zinc-700/50 flex justify-start bg-gray-50/30 dark:bg-zinc-800/30">
-              <button
-                type="button"
-                onClick={() => {
-                  const input = document.createElement("input");
-                  input.type = "file";
-                  input.accept = "image/*";
-                  input.onchange = (ev: Event) => {
-                    const target = ev.target as HTMLInputElement | null;
-                    const f = target?.files?.[0];
-                    if (f && quill) {
-                      const r = new FileReader();
-                      r.onload = (e) => {
-                        const range = quill.getSelection(true);
-                        quill.insertEmbed(
-                          range.index,
-                          "image",
-                          e.target?.result,
-                        );
-                      };
-                      r.readAsDataURL(f);
-                    }
-                  };
-                  input.click();
-                }}
-                className="bg-[#1e2337] hover:bg-[#2b334d] text-white px-5 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
-              >
-                <span>إضافة</span>
-              </button>
-            </div>
-          </div>
+          <RichTextEditor
+            value={content}
+            onChange={(val) => setContent(val)}
+            placeholder="أضف تفاصيل المقال هنا..."
+          />
         </div>
 
         {/* ─── Form Footer with Save Buttons ────────────────────────── */}
