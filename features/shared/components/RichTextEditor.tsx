@@ -800,6 +800,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 uploader: {
                   async uploadByFile(file: File) {
                     try {
+                      // 1. Try uploading to /api/upload-image (which compresses with sharp & saves statically if possible)
                       const formData = new FormData();
                       formData.append("image", file);
                       const res = await fetch("/api/upload-image", {
@@ -819,7 +820,51 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                       console.error("Image upload error:", err);
                     }
 
-                    // Fallback to Base64 only if upload endpoint fails
+                    // 2. Client-side compression fallback to small WebP (reduces MBs to ~30KB)
+                    try {
+                      const compressedDataUrl = await new Promise<string>((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const img = new Image();
+                          img.onload = () => {
+                            const canvas = document.createElement("canvas");
+                            let width = img.width;
+                            let height = img.height;
+                            const maxWidth = 1000;
+                            if (width > maxWidth) {
+                              height = Math.round((height * maxWidth) / width);
+                              width = maxWidth;
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext("2d");
+                            if (!ctx) {
+                              resolve(event.target?.result as string);
+                              return;
+                            }
+                            ctx.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL("image/webp", 0.75));
+                          };
+                          img.onerror = () => resolve(event.target?.result as string);
+                          img.src = event.target?.result as string;
+                        };
+                        reader.onerror = () => resolve("");
+                        reader.readAsDataURL(file);
+                      });
+
+                      if (compressedDataUrl) {
+                        return {
+                          success: 1,
+                          file: {
+                            url: compressedDataUrl,
+                          },
+                        };
+                      }
+                    } catch (compressErr) {
+                      console.error("Client image compression error:", compressErr);
+                    }
+
+                    // Fallback to Base64
                     return new Promise((resolve) => {
                       const reader = new FileReader();
                       reader.onload = (e) => {
