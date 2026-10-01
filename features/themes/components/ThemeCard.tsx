@@ -251,7 +251,7 @@ const ThemeCard: React.FC<ProductCardProps> = ({
           }
           width={imageWidth}
           height={imageHeight}
-          className="product-card__image h-full object-cover w-full"
+          className="product-card__image h-full !object-contain w-full"
           loading="eager"
         />
         </Link> 
@@ -349,25 +349,56 @@ const ThemeCard: React.FC<ProductCardProps> = ({
                     }}
                     title={`اختيار ${demoIconName || `ديمو ${idx + 1}`}`}
                     aria-label={`اختيار ديمو ${demoIconName || idx + 1}`}
-                    className={`product-card__demo-btn size-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm border overflow-hidden cursor-pointer ${
+                    className={`product-card__demo-btn relative size-8 rounded-full flex items-center justify-center transition-all duration-300 border border-gray-200 dark:border-zinc-700 cursor-pointer bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 shadow-sm ${
                       isActive
-                        ? hasImg
-                          ? "border-[var(--primary-color,#ea580c)] ring-2 ring-[var(--primary-color,#ea580c)] ring-offset-2 ring-offset-white dark:ring-offset-zinc-900 scale-110 shadow-md"
-                          : "!text-white !bg-[var(--primary-color,#ea580c)] border-transparent scale-105 shadow-md ring-2 ring-[var(--primary-color,#ea580c)]/30"
-                        : "text-zinc-700 bg-white/90 hover:bg-zinc-100 hover:scale-110 border-gray-200 dark:text-zinc-200 dark:bg-zinc-800 dark:border-zinc-700"
+                        ? "scale-110 shadow-md ring-0"
+                        : "hover:bg-zinc-100 hover:scale-105"
                     }`}
                   >
-                    {hasImg ? (
-                      <img
-                        src={demoImg}
-                        alt={demoIconName || "demo icon"}
-                        className="w-full h-full object-cover rounded-full"
+                    {/* مساحة الصورة / الأيقونة في المنتصف */}
+                    <div className="w-full h-full rounded-full flex items-center justify-center p-1.5 overflow-hidden">
+                      {hasImg ? (
+                        <img
+                          src={demoImg}
+                          alt={demoIconName || "demo icon"}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-xs flex items-center justify-center">
+                          {resolveIcon(demoIconName)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* القوس السفلي المسحوب بانسيابية على الإطار الخارجي */}
+                    <svg
+                      className="absolute inset-0 w-[calc(100%+1px)] h-[calc(100%+2px)] pointer-events-none overflow-visible"
+                      viewBox="0 0 34 34"
+                      fill="none"
+                    >
+                      <defs>
+                        <linearGradient
+                          id={`taper-arc-${id}-${idx}`}
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="0%"
+                        >
+                          <stop offset="0%" stopColor="var(--primary-color, #ea580c)" stopOpacity="0" />
+                          <stop offset="15%" stopColor="var(--primary-color, #ea580c)" stopOpacity="0.8" />
+                          <stop offset="35%" stopColor="var(--primary-color, #ea580c)" stopOpacity="1" />
+                          <stop offset="65%" stopColor="var(--primary-color, #ea580c)" stopOpacity="1" />
+                          <stop offset="85%" stopColor="var(--primary-color, #ea580c)" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="var(--primary-color, #ea580c)" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d="M 3.5 23.5 A 16 16 0 0 0 30.5 23.5"
+                        stroke={`url(#taper-arc-${id}-${idx})`}
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
                       />
-                    ) : (
-                      <span className="text-sm flex items-center justify-center">
-                        {resolveIcon(demoIconName)}
-                      </span>
-                    )}
+                    </svg>
                   </button>
                 );
               })}
