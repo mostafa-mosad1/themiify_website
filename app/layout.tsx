@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Themiify",
   description:
     "We develop professional themes and custom websites for e-commerce platforms.",
-}; 
+};
 
 export default function RootLayout({
   children,
