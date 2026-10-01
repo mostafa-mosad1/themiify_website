@@ -168,14 +168,15 @@ const ThemeCard: React.FC<ProductCardProps> = ({
     return [];
   }, [demos]);
 
-  const [activeDemoId, setActiveDemoId] = useState<string | number | null>(
-    sortedDemos.length > 0 ? sortedDemos[0].id : null,
-  );
+  const [activeDemoId, setActiveDemoId] = useState<string | number | null>(null);
 
-  const activeDemo = useMemo(
-    () => sortedDemos.find((d) => d.id === activeDemoId) ?? null,
-    [sortedDemos, activeDemoId]
-  );
+  const activeDemo = useMemo(() => {
+    if (sortedDemos.length === 0) return null;
+    const found = sortedDemos.find((d) => d.id === activeDemoId);
+    return found || sortedDemos[0];
+  }, [sortedDemos, activeDemoId]);
+
+  const activeId = activeDemo?.id;
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -225,9 +226,10 @@ const ThemeCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  // Swap image and preview link when a demo is active
-  const currentImage = activeDemo?.image_url || activeDemo?.image || imageUrl;
-  const previewUrl = activeDemo?.url || previewLink;
+  // Swap image, preview link and buy link when a demo is active
+  const currentImage = activeDemo?.image_url || activeDemo?.image || activeDemo?.imageUrl || imageUrl;
+  const previewUrl = (activeDemo?.url || activeDemo?.link || activeDemo?.demo_url || previewLink || "").trim();
+  const currentBuyLink = (activeDemo?.buy_link || activeDemo?.buyLink || activeDemo?.buy_url || activeDemo?.purchase_url || buyLink || "").trim();
 
   // In client view: if the theme is hidden, don't render at all
   if (author !== "admin" && !visible) return null;
@@ -329,48 +331,44 @@ const ThemeCard: React.FC<ProductCardProps> = ({
             <div className="product-card__demos flex items-center gap-1.5 flex-wrap" aria-label="نماذج الثيم">
               {sortedDemos.map((rawDemo, idx) => {
                 const demo = rawDemo as any;
-                const isActive = activeDemoId === demo.id;
-                const demoUrl = (demo.url || demo.link || demo.demo_url || "").trim();
+                const isActive = activeId === demo.id;
                 const demoIconName = demo.icon_name || demo.iconName || demo.icon;
                 const demoImg = demo.image_url || demo.imageUrl || demo.image || demo.icon_url || demo.iconUrl;
+                const hasImg =
+                  demoImg &&
+                  typeof demoImg === "string" &&
+                  (demoImg.startsWith("http") || demoImg.startsWith("/"));
 
                 return (
-                  <a
+                  <button
+                    type="button"
                     key={demo.id || idx}
-                    href={demoUrl || "#"}
-                    target={demoUrl ? "_blank" : undefined}
-                    rel={demoUrl ? "noopener noreferrer" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (!demoUrl) {
-                        e.preventDefault();
-                      }
-                      setActiveDemoId((prev) => (prev === demo.id ? null : demo.id));
+                      setActiveDemoId(demo.id);
                     }}
-                    title={demoUrl ? `فتح الديمو: ${demoUrl}` : "ديمو"}
-                    aria-label={`ديمو ${demoIconName || idx + 1}`}
+                    title={`اختيار ${demoIconName || `ديمو ${idx + 1}`}`}
+                    aria-label={`اختيار ديمو ${demoIconName || idx + 1}`}
                     className={`product-card__demo-btn size-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm border overflow-hidden cursor-pointer ${
                       isActive
-                        ? "!text-white !bg-[var(--primary-color,#ea580c)] border-transparent scale-105 shadow-md ring-2 ring-[var(--primary-color,#ea580c)]/30"
+                        ? hasImg
+                          ? "border-[var(--primary-color,#ea580c)] ring-2 ring-[var(--primary-color,#ea580c)] ring-offset-2 ring-offset-white dark:ring-offset-zinc-900 scale-110 shadow-md"
+                          : "!text-white !bg-[var(--primary-color,#ea580c)] border-transparent scale-105 shadow-md ring-2 ring-[var(--primary-color,#ea580c)]/30"
                         : "text-zinc-700 bg-white/90 hover:bg-zinc-100 hover:scale-110 border-gray-200 dark:text-zinc-200 dark:bg-zinc-800 dark:border-zinc-700"
                     }`}
                   >
-                    {demoImg &&
-                    typeof demoImg === "string" &&
-                    (demoImg.startsWith("http") || demoImg.startsWith("/")) ? (
-                      <div className="w-full h-full p-1 flex items-center justify-center">
-                        <img
-                          src={demoImg}
-                          alt={demoIconName || "demo icon"}
-                          className="w-full h-full object-contain p-0.5 rounded-full"
-                        />
-                      </div>
+                    {hasImg ? (
+                      <img
+                        src={demoImg}
+                        alt={demoIconName || "demo icon"}
+                        className="w-full h-full object-cover rounded-full"
+                      />
                     ) : (
                       <span className="text-sm flex items-center justify-center">
                         {resolveIcon(demoIconName)}
                       </span>
                     )}
-                  </a>
+                  </button>
                 );
               })}
             </div>
@@ -417,10 +415,10 @@ const ThemeCard: React.FC<ProductCardProps> = ({
           {/* Buy Button */}
           <Button
             variant="solid"
-            url={buyLink}
-            openInNewTab={!!buyLink}
+            url={currentBuyLink}
+            openInNewTab={!!currentBuyLink}
             className="product-card__button product-card__button--buy flex items-center justify-center text-primary buyCardBtn w-1/2 hover:scale-95 transition-transform duration-200"
-            aria-label="شراء المنتج الآن"
+            ariaLabel="شراء المنتج الآن"
           >
             <span className="text-primary text-nowrap">اشتري الآن</span>
           </Button>
