@@ -227,9 +227,10 @@ const ThemeCard: React.FC<ProductCardProps> = ({
   };
 
   // Swap image, preview link and buy link when a demo is active
-  const currentImage = activeDemo?.image_url || activeDemo?.image || activeDemo?.imageUrl || imageUrl;
-  const previewUrl = (activeDemo?.url || activeDemo?.link || activeDemo?.demo_url || previewLink || "").trim();
-  const currentBuyLink = (activeDemo?.buy_link || activeDemo?.buyLink || activeDemo?.buy_url || activeDemo?.purchase_url || buyLink || "").trim();
+  const demoAny = activeDemo as any;
+  const currentImage = demoAny?.image_url || demoAny?.image || demoAny?.imageUrl || imageUrl;
+  const previewUrl = (demoAny?.url || demoAny?.link || demoAny?.demo_url || previewLink || "").trim();
+  const currentBuyLink = (demoAny?.buy_link || demoAny?.buyLink || demoAny?.buy_url || demoAny?.purchase_url || buyLink || "").trim();
 
   // In client view: if the theme is hidden, don't render at all
   if (author !== "admin" && !visible) return null;
