@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/admin/page.tsx
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { IoIosColorPalette } from "react-icons/io";
@@ -14,24 +17,66 @@ import {
 } from "react-icons/fa";
 import { MdCategory, MdOutlineSupportAgent } from "react-icons/md";
 import ActivitiesList from "@/components/ui/ActivitiesList";
-import { fetchThemes } from "@/lib/api/themes";
-import { fetchBlogs } from "@/lib/api/blogs";
+import { fetchAdminStatistics, IStatCard } from "@/lib/api/statistics";
 import { fetchAdminLogs } from "@/lib/api/logs";
-import { fetchCategories } from "@/lib/api/categories";
-import { fetchPlatforms } from "@/lib/api/platforms";
-import { fetchAdminSupportCategories } from "@/lib/api/support-categories";
-import { fetchAdminSupportQuestions } from "@/lib/api/support-questions";
-import { fetchAdminSupportChannels } from "@/lib/api/support-channels";
-import { fetchAdminFeedbacks } from "@/lib/api/feedbacks";
 import {
   fetchAdminById,
   fetchAdmins,
-  fetchEndUsers,
   IAdminAccount,
   formatDashboardActivities,
   dashboardQuickActions,
 } from "@/features/admins";
 import { getCurrentServerUser } from "@/lib/utils/serverAuth";
+
+const STATS_CONFIG: Record<
+  string,
+  { href: string; icon: React.ReactNode }
+> = {
+  themes_count: {
+    href: "/admin/themes",
+    icon: <IoIosColorPalette size={25} />,
+  },
+  blogs_count: {
+    href: "/admin/essays",
+    icon: <HiDocumentText size={25} />,
+  },
+  categories_count: {
+    href: "/admin/categories",
+    icon: <MdCategory size={25} />,
+  },
+  platforms_count: {
+    href: "/admin/platforms",
+    icon: <FaGlobe size={23} />,
+  },
+  support_categories_count: {
+    href: "/admin/support",
+    icon: <MdOutlineSupportAgent size={25} />,
+  },
+  support_questions_count: {
+    href: "/admin/support",
+    icon: <FaQuestionCircle size={23} />,
+  },
+  support_channels_count: {
+    href: "/admin/support",
+    icon: <FaHeadset size={23} />,
+  },
+  user_ratings_count: {
+    href: "/admin/form",
+    icon: <FaStar size={23} />,
+  },
+  logs_count: {
+    href: "/admin",
+    icon: <FaHistory size={23} />,
+  },
+  admins_count: {
+    href: "/admin/accounts",
+    icon: <FaUsers size={23} />,
+  },
+  users_count: {
+    href: "/admin/accounts",
+    icon: <FaUsers size={23} />,
+  },
+};
 
 function renderQuickActionIcon(type: "theme" | "essay" | "support") {
   switch (type) {
@@ -88,63 +133,28 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
   const isSuperAdmin = Boolean(currentUser?.isSuperAdmin);
 
   const [
-    themesRes,
-    blogsRes,
+    statsRes,
     logsRes,
     adminsRes,
-    usersRes,
-    categoriesRes,
-    platformsRes,
-    supportCategories,
-    supportQuestionsRes,
-    supportChannelsRes,
-    feedbacksRes,
   ] = await Promise.all([
-      fetchThemes({ per_page: 1 }),
-      fetchBlogs({ per_page: 1 }),
-      fetchAdminLogs(token, logsPage),
-      isSuperAdmin
-        ? fetchAdmins(token)
-        : Promise.resolve({ admins: [], pagination: undefined }),
-      isSuperAdmin
-        ? fetchEndUsers(token)
-        : Promise.resolve({ users: [], pagination: undefined }),
-      fetchCategories(token, 1),
-      fetchPlatforms(token, 1),
-      fetchAdminSupportCategories(token),
-      fetchAdminSupportQuestions(token),
-      fetchAdminSupportChannels(token),
-      fetchAdminFeedbacks(token),
-    ]);
+    fetchAdminStatistics(token),
+    fetchAdminLogs(token, logsPage),
+    isSuperAdmin
+      ? fetchAdmins(token)
+      : Promise.resolve({ admins: [], pagination: undefined }),
+  ]);
 
-  const themesCount = themesRes.pagination?.total ?? (themesRes.themes?.length || 0);
-  const articlesCount = blogsRes.pagination?.total ?? (blogsRes.blogs?.length || 0);
-  const categoriesCount = categoriesRes.pagination?.total ?? categoriesRes.categories.length;
-  const platformsCount = platformsRes.pagination?.total ?? platformsRes.platforms.length;
-  const supportCategoriesCount = supportCategories.length;
-  const supportQuestionsCount = supportQuestionsRes.questions.length;
-  const supportChannelsCount = supportChannelsRes.channels.length;
-  const feedbacksCount = feedbacksRes.feedbacks.length;
+  const rawStatsCards: IStatCard[] = statsRes?.stats_cards || [];
+  
+  // تصفية الكروت حسب الصلاحيات (حسابات الأدمن والمستخدمين للسوبر أدمن فقط)
+  const statCards = rawStatsCards.filter((card) => {
+    if (!isSuperAdmin && (card.key === "admins_count" || card.key === "users_count")) {
+      return false;
+    }
+    return true;
+  });
+
   const logs = logsRes.logs || [];
-  const accountsCount = adminsRes.pagination?.total ?? adminsRes.admins.length;
-  const usersCount = usersRes.pagination?.total ?? usersRes.users.length;
-  const logsCount = logsRes.pagination?.total ?? logs.length;
-
-  const statCards = [
-    { label: "عدد الثيمات", value: themesCount, href: "/admin/themes", icon: <IoIosColorPalette size={25} /> },
-    { label: "عدد المقالات", value: articlesCount, href: "/admin/essays", icon: <HiDocumentText size={25} /> },
-    { label: "أقسام الثيمات", value: categoriesCount, href: "/admin/categories", icon: <MdCategory size={25} /> },
-    { label: "المنصات", value: platformsCount, href: "/admin/platforms", icon: <FaGlobe size={23} /> },
-    { label: "أسئلة الدعم", value: supportQuestionsCount, href: "/admin/support", icon: <FaQuestionCircle size={23} /> },
-    { label: "تقييمات المستخدمين", value: feedbacksCount, href: "/admin/form", icon: <FaStar size={23} /> },
-    { label: "سجل الأنشطة", value: logsCount, href: "/admin/logs", icon: <FaHistory size={23} /> },
-    ...(isSuperAdmin
-      ? [
-          { label: "حسابات الأدمن", value: accountsCount, href: "/admin/accounts", icon: <FaUsers size={23} /> },
-          { label: "المستخدمين", value: usersCount, href: "/admin/accounts", icon: <FaUsers size={23} /> },
-        ]
-      : []),
-  ];
 
   // وضع المشرفين المسترجعين من GET /admin/admins في الـ Map
   const adminsMap = new Map<number | string, IAdminAccount>();
@@ -194,25 +204,32 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
         </div>
 
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {statCards.map((stat) => (
-            <Link prefetch={false}
-              key={stat.label}
-              href={stat.href}
-              className="group flex cursor-pointer items-center gap-4 rounded-3xl border border-[var(--border-color)]/70 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all hover:border-primary/40 hover:shadow-md dark:bg-[var(--bg-secondary)] md:p-6"
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-orange-100 bg-orange-50 text-[#f26a21] transition-transform group-hover:scale-110 dark:border-orange-900/40 dark:bg-orange-950/40">
-                {stat.icon}
-              </div>
-              <div className="min-w-0 space-y-0.5">
-                <p className="font-mono text-3xl font-extrabold leading-none text-[#0e132c] dark:text-white md:text-4xl">
-                  {stat.value}
-                </p>
-                <p className="pt-1 text-xs font-medium text-gray-500 dark:text-gray-400 md:text-sm">
-                  {stat.label}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {statCards.map((stat) => {
+            const config = STATS_CONFIG[stat.key] || {
+              href: "/admin",
+              icon: <IoIosColorPalette size={25} />,
+            };
+            return (
+              <Link
+                prefetch={false}
+                key={stat.key}
+                href={config.href}
+                className="group flex cursor-pointer items-center gap-4 rounded-3xl border border-[var(--border-color)]/70 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all hover:border-primary/40 hover:shadow-md dark:bg-[var(--bg-secondary)] md:p-6"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-orange-100 bg-orange-50 text-[#f26a21] transition-transform group-hover:scale-110 dark:border-orange-900/40 dark:bg-orange-950/40">
+                  {config.icon}
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <p className="font-mono text-3xl font-extrabold leading-none text-[#0e132c] dark:text-white md:text-4xl">
+                    {stat.count}
+                  </p>
+                  <p className="pt-1 text-xs font-medium text-gray-500 dark:text-gray-400 md:text-sm">
+                    {stat.title}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 

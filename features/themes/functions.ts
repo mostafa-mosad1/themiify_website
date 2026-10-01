@@ -3,51 +3,6 @@
 import { apiClient } from "@/lib/api/config";
 import type { ITheme, IThemesPagination } from "./types";
 
-async function enrichThemesWithDemos(
-  themes: ITheme[],
-  token?: string | null,
-): Promise<ITheme[]> {
-  if (!themes || !Array.isArray(themes) || themes.length === 0) return [];
-
-  // Skip enrichment if all themes already have demos from the API
-  const allHaveDemos = themes.every((t) => {
-    const d = (t as any)?.demos || (t as any)?.theme_demos;
-    return Array.isArray(d) && d.length > 0;
-  });
-  if (allHaveDemos) return themes;
-
-  // Concurrency-limited enrichment — max 5 parallel requests
-  const CONCURRENCY = 5;
-  const results: ITheme[] = [...themes];
-
-  for (let i = 0; i < themes.length; i += CONCURRENCY) {
-    const batch = themes.slice(i, i + CONCURRENCY);
-    const enriched = await Promise.all(
-      batch.map(async (theme, batchIdx) => {
-        const rawDemos = (theme as any)?.demos || (theme as any)?.theme_demos;
-        if (Array.isArray(rawDemos) && rawDemos.length > 0) return theme;
-        try {
-          const detail = await fetchThemeById(theme.id, token);
-          if (detail && (detail.demos || (detail as any).theme_demos)) {
-            return {
-              ...theme,
-              demos: detail.demos || (detail as any).theme_demos || [],
-            };
-          }
-        } catch {
-          // ignore
-        }
-        return theme;
-      }),
-    );
-    enriched.forEach((t, j) => {
-      results[i + j] = t;
-    });
-  }
-
-  return results;
-}
-
 export async function fetchThemes(params?: {
   page?: number;
   per_page?: number;
@@ -84,8 +39,10 @@ export async function fetchThemes(params?: {
         pagination = res.data as any;
       }
 
-      // Enrich themes with demos (concurrency-limited to avoid N+1 flood)
-      const themes = await enrichThemesWithDemos(rawList);
+      const themes = rawList.map((t: any) => ({
+        ...t,
+        demos: t.demos || t.theme_demos || [],
+      }));
       return { themes, pagination };
     }
     return { themes: [] };
@@ -237,7 +194,10 @@ export async function fetchAdminThemes(
         pagination = res.data as any;
       }
 
-      const themes = await enrichThemesWithDemos(rawList, token);
+      const themes = rawList.map((t: any) => ({
+        ...t,
+        demos: t.demos || t.theme_demos || [],
+      }));
       return { themes, pagination };
     }
     const fallback = await fetchThemes(params);
