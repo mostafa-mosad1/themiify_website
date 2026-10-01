@@ -403,9 +403,7 @@ const ThemeDetailPage = async ({
           <div className="w-full lg:w-1/2">
             <div className="relative mx-auto w-full max-w-xl group">
               {/* Laptop Display Bezel */}
-              <div className="relative rounded-t-2xl md:rounded-t-3xl bg-[#1e232a] p-2 md:p-3 pb-0 shadow-2xl border-t border-x border-gray-700">
-                <div className="absolute top-1 md:top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-gray-600/60" />
-                <div className="relative aspect-video w-full overflow-hidden rounded-t-lg md:rounded-t-xl bg-black">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
                   {introVideoUrl ? (
                     <iframe
                       src={
@@ -425,13 +423,6 @@ const ThemeDetailPage = async ({
                     />
                   )}
                 </div>
-              </div>
-              {/* Laptop Chin */}
-              <div className="relative h-3 md:h-4 w-full rounded-b-xl md:rounded-b-2xl bg-gradient-to-b from-[#2a303c] to-[#1a1f26] shadow-md flex items-center justify-center">
-                <div className="h-1 md:h-1.5 w-16 md:w-24 rounded-b-md bg-[#12161c]" />
-              </div>
-              {/* Bottom Shadow */}
-              <div className="mx-auto h-1.5 md:h-2 w-[94%] rounded-b-full bg-black/20 blur-sm" />
             </div>
           </div>
         </div>
