@@ -6,6 +6,8 @@ import Link from "next/link";
 import ThemeGrid from "./Themegrid";
 import ThemeCard from "@/components/ui/ThemeCard";
 import { fetchThemeById } from "@/lib/api/themes";
+import ThemeMediaSlider from "./ThemeMediaSlider";
+import { resolveIcon } from "@/lib/utils/iconMap";
 
 interface StructuredSection {
   id: number;
@@ -232,14 +234,6 @@ function parseThemePages(raw: unknown, themeFallback?: any): StructuredPage[] {
   return result;
 }
 
-function getYoutubeId(url?: string | null) {
-  if (!url) return "";
-  if (url.includes("watch?v=")) return url.split("watch?v=")[1].split("&")[0];
-  if (url.includes("youtu.be/")) return url.split("youtu.be/")[1].split("?")[0];
-  if (url.includes("embed/")) return url.split("embed/")[1].split("?")[0];
-  return "";
-}
-
 const PLATFORM_LOGOS: Record<string, string> = {
   salla: "https://cdn.salla.network/images/logo/logo.svg",
   sharry: "https://dev.gosharry.com/themes/gosharrytheme/build/assets/logo_admin-0f8bf526.png",
@@ -280,39 +274,42 @@ const ThemeDetailPage = async ({
   const structuredPages = parseThemePages(rawPages, theme);
 
   const platformName = theme.platform?.name || theme.platform_name || "Salla";
-  const platformLogo =
-    theme.platform?.icon || PLATFORM_LOGOS[platformName.toLowerCase()];
+  const platformIcon = theme.platform?.icon?.trim();
+  const isPlatformIconImage = Boolean(
+    platformIcon?.match(/^(https?:\/\/|\/|data:image\/)/i),
+  );
+  const platformLogo = isPlatformIconImage
+    ? platformIcon
+    : PLATFORM_LOGOS[platformName.toLowerCase()];
+  const platformIconName =
+    !platformLogo && platformIcon && !isPlatformIconImage
+      ? platformIcon
+      : null;
   const introVideoUrl = theme.video_link || theme.playlist_link || "";
 
   const rawImages = (theme as any).images;
-  const mediaUrls: string[] = [];
+  const themeImages: string[] = [];
 
   if (Array.isArray(rawImages)) {
-    mediaUrls.push(...rawImages);
+    themeImages.push(...rawImages);
   } else if (typeof rawImages === "object" && rawImages !== null) {
     if (Array.isArray(rawImages.main_images))
-      mediaUrls.push(...rawImages.main_images);
-    if (Array.isArray(rawImages.previews)) mediaUrls.push(...rawImages.previews);
+      themeImages.push(...rawImages.main_images);
+    if (Array.isArray(rawImages.previews))
+      themeImages.push(...rawImages.previews);
   } else if (typeof rawImages === "string") {
     try {
       const parsed = JSON.parse(rawImages);
-      if (Array.isArray(parsed)) mediaUrls.push(...parsed);
+      if (Array.isArray(parsed)) themeImages.push(...parsed);
       else if (typeof parsed === "object" && parsed !== null) {
         if (Array.isArray(parsed.main_images))
-          mediaUrls.push(...parsed.main_images);
+          themeImages.push(...parsed.main_images);
         if (Array.isArray(parsed.previews))
-          mediaUrls.push(...parsed.previews);
+          themeImages.push(...parsed.previews);
       }
     } catch {
-      if (rawImages.trim()) mediaUrls.push(rawImages);
+      if (rawImages.trim()) themeImages.push(rawImages);
     }
-  }
-
-  if (theme.image_url && !mediaUrls.includes(theme.image_url)) {
-    mediaUrls.unshift(theme.image_url);
-  }
-  if (theme.banner_url && !mediaUrls.includes(theme.banner_url)) {
-    mediaUrls.unshift(theme.banner_url);
   }
 
   return (
@@ -335,7 +332,7 @@ const ThemeDetailPage = async ({
         {/* Slim Banner Header */}
         <div className="w-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 max-h-[160px] md:max-h-[180px] flex items-center justify-center">
           <img
-            src={theme.banner_url || mediaUrls[0] || "/images/placeholder.svg"}
+            src={theme.banner_url || themeImages[0] || "/images/placeholder.svg"}
             alt={theme.name}
             className="w-full h-full object-cover object-center"
           />
@@ -361,6 +358,10 @@ const ThemeDetailPage = async ({
                     alt={platformName}
                     className="w-6 h-6 object-contain"
                   />
+                ) : platformIconName ? (
+                  <span className="w-6 h-6 flex items-center justify-center">
+                    {resolveIcon(platformIconName)}
+                  </span>
                 ) : (
                   <span className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 flex items-center justify-center text-xs">
                     🛍
@@ -388,41 +389,20 @@ const ThemeDetailPage = async ({
             </div>
 
             <div className="pt-2">
-              <a
-                href={introVideoUrl || "#"}
-                target={introVideoUrl ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r from-[#F26B21] to-[#FF8C38] text-white font-bold text-sm md:text-base shadow-[0_4px_14px_rgba(242,107,33,0.35)] hover:opacity-95 hover:scale-[1.02] transition-all cursor-pointer"
+              <Button
+                url={introVideoUrl || "#"}
+                openInNewTab={Boolean(introVideoUrl)}
+                className="px-4 px-1 py-2 rounded-full font-medium inline-flex items-center gap-2 text-white transition-all duration-300 text-sm text-nowrap text-center justify-center min-w-28 gradient-primary !shadow-[inset_0px_2px_4px_0px_var(--shadow-color)] shadow-[inset_1px_4px_8px_rgb(14_19_44_/_6%),inset_-2px_-4px_10px_rgb(255_255_255_/_20%),inset_0_-1px_0px_#0E132C0F] select-none w-fit"
               >
                 شاهد الفيديو الآن
-              </a>
+              </Button>
             </div>
           </div>
 
           {/* Left Video Mockup (in RTL) */}
           <div className="w-full lg:w-1/2">
-            <div className="relative mx-auto w-full max-w-xl group">
-              {/* Laptop Display Bezel */}
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-                  {introVideoUrl ? (
-                    <iframe
-                      src={
-                        getYoutubeId(introVideoUrl)
-                          ? `https://www.youtube.com/embed/${getYoutubeId(introVideoUrl)}`
-                          : introVideoUrl
-                      }
-                      className="w-full h-full"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    />
-                  ) : (
-                    <img
-                      src={theme.banner_url || mediaUrls[0] || "/images/placeholder.svg"}
-                      alt={theme.name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
+            <div className="relative mx-auto w-full max-w-xl">
+              <ThemeMediaSlider images={themeImages} themeName={theme.name} />
             </div>
           </div>
         </div>
@@ -453,7 +433,7 @@ const ThemeDetailPage = async ({
                 key={relatedItem.id}
                 id={relatedItem.id}
                 name={relatedItem.name}
-                imageUrl={relatedItem.banner_url || relatedItem.image_url || "/images/placeholder.svg"}
+                imageUrl={relatedItem.images?.[0] || relatedItem.image_url || "/images/placeholder.svg"}
                 price={relatedItem.price || "0"}
                 categoryName={relatedItem.category?.name || relatedItem.category_name || ""}
                 platformName={relatedItem.platform?.name || relatedItem.platform_name || ""}

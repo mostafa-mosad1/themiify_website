@@ -48,9 +48,7 @@ interface Theme {
 
 /** Returns the first image URL from the stored images field (supports array or object shapes). */
 function extractImageUrl(images: unknown): string {
-  const FALLBACK = "/placeholder-image.jpg";
-
-  if (!images) return FALLBACK;
+  if (!images) return "";
 
   let parsed = images;
   if (typeof images === "string") {
@@ -61,7 +59,7 @@ function extractImageUrl(images: unknown): string {
     }
   }
 
-  if (typeof parsed !== "object" || parsed === null) return FALLBACK;
+  if (typeof parsed !== "object" || parsed === null) return "";
 
   if (!Array.isArray(parsed)) {
     const obj = parsed as Record<string, unknown>;
@@ -75,7 +73,7 @@ function extractImageUrl(images: unknown): string {
 
   if (Array.isArray(parsed) && parsed.length > 0) return parsed[0] as string;
 
-  return FALLBACK;
+  return "";
 }
 
 // ─── Skeleton Component ───────────────────────────────────────────────────────
@@ -477,9 +475,9 @@ const PageContent = () => {
           id: theme.id,
           name: theme.name || "بدون اسم",
           imageUrl:
-            theme.banner_url ||
+            extractImageUrl(theme.images) ||
             theme.image_url ||
-            extractImageUrl(theme.images || theme.banner),
+            "/placeholder-image.jpg",
           price: Number(theme.price) || 0,
           userGuideUrl: theme.inspect_link || "#",
           previewLink: theme.inspect_link || "",
