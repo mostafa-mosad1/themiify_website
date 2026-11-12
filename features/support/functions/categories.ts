@@ -143,3 +143,78 @@ export async function fetchSupportClientCategories(): Promise<ISupportCategory[]
     return [];
   }
 }
+
+export async function createSupportCategory(
+  data: {
+    name: string;
+    description?: string;
+    icon?: string;
+    order_index?: number;
+    is_active?: boolean;
+  },
+  token?: string | null,
+): Promise<{ success: boolean; data?: ISupportCategory; error?: string }> {
+  try {
+    const payload = {
+      name: data.name.trim(),
+      description: data.description?.trim() || '',
+      icon: data.icon?.trim() || '',
+      order_index: data.order_index ?? 1,
+      is_active: data.is_active ?? true,
+    };
+    const res = await apiClient<any>(
+      '/admin/support-categories',
+      { method: 'POST', body: JSON.stringify(payload) },
+      token,
+    );
+    if (res.success) {
+      invalidateSupportCategoriesCache();
+      const raw = res.data?.data ?? res.data;
+      return { success: true, data: raw as ISupportCategory };
+    }
+    return { success: false, error: res.error || res.message || 'فشل إنشاء التصنيف' };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'فشل إنشاء التصنيف' };
+  }
+}
+
+export async function updateSupportCategory(
+  id: number | string,
+  data: { name: string },
+  token?: string | null,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await apiClient<any>(
+      `/admin/support-categories/${id}`,
+      { method: 'PATCH', body: JSON.stringify({ name: data.name.trim() }) },
+      token,
+    );
+    if (res.success) {
+      invalidateSupportCategoriesCache();
+      return { success: true };
+    }
+    return { success: false, error: res.error || res.message || 'فشل تعديل التصنيف' };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'فشل تعديل التصنيف' };
+  }
+}
+
+export async function deleteSupportCategory(
+  id: number | string,
+  token?: string | null,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await apiClient<any>(
+      `/admin/support-categories/${id}`,
+      { method: 'DELETE' },
+      token,
+    );
+    if (res.success) {
+      invalidateSupportCategoriesCache();
+      return { success: true };
+    }
+    return { success: false, error: res.error || res.message || 'فشل حذف التصنيف' };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'فشل حذف التصنيف' };
+  }
+}

@@ -418,7 +418,9 @@ function EssaysContent() {
               السابق
             </button>
 
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+            {Array.from({ length: totalPages }, (_, index) => index + 1)
+              .filter((page) => Math.abs(page - safePage) <= 1)
+              .map(
               (page) => (
                 <button
                   key={page}
