@@ -37,6 +37,9 @@ import {
 } from "@/lib/api/support-questions";
 import {
     fetchAdminSupportCategories,
+    createSupportCategory,
+    updateSupportCategory,
+    deleteSupportCategory,
     ISupportCategory,
 } from "@/lib/api/support-categories";
 import {
@@ -481,6 +484,59 @@ export default function SupportAdminPanel({
     });
     const [editingChannel, setEditingChannel] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [savingCategory, setSavingCategory] = useState(false);
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+    const [categoryForm, setCategoryForm] = useState({
+        name: "",
+        description: "",
+        icon: "",
+        order_index: 1,
+        is_active: true,
+    });
+
+    const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+    const [deletingCategory, setDeletingCategory] = useState(false);
+    const handleDeleteCategory = (id: number) => setDeleteTarget(id);
+    const confirmDeleteCategory = async () => {
+        const id = deleteTarget;
+        if (id === null) return;
+        setDeletingCategory(true);
+        const res = await deleteSupportCategory(id);
+        setDeletingCategory(false);
+        setDeleteTarget(null);
+        if (res.success) {
+            toast.success("تم حذف التصنيف");
+            if (selectedCategory === id) setSelectedCategory(null);
+            const cats = await fetchAdminSupportCategories();
+            setCategories(cats || []);
+        } else {
+            toast.error(res.error || "فشل حذف التصنيف");
+        }
+    };
+
+    const handleCreateCategory = async () => {
+        if (!categoryForm.name.trim()) {
+            toast.error("اسم التصنيف مطلوب");
+            return;
+        }
+        setSavingCategory(true);
+        const res = editingCategoryId !== null
+            ? await updateSupportCategory(editingCategoryId, { name: categoryForm.name })
+            : await createSupportCategory(categoryForm);
+        setSavingCategory(false);
+        if (res.success) {
+            toast.success(editingCategoryId !== null ? "تم تعديل التصنيف" : "تمت إضافة التصنيف");
+            setShowCategoryModal(false);
+            setEditingCategoryId(null);
+            setCategoryForm({ name: "", description: "", icon: "", order_index: 1, is_active: true });
+            const cats = await fetchAdminSupportCategories();
+            if (cats && cats.length > 0) setCategories(cats);
+        } else {
+            toast.error(res.error || "فشل إضافة التصنيف");
+        }
+    };
     const [searchQuery, setSearchQuery] = useState("");
 
     // جلب الفئات والأسئلة كـ Fallback في حال لم تمرر من الخادم
@@ -1102,21 +1158,157 @@ export default function SupportAdminPanel({
                         </div>
 
                         {/* Category Filter Dropdown (on left in RTL) */}
-                        <div className="relative w-full sm:w-56">
-                            <select
-                                value={selectedCategory !== null ? String(selectedCategory) : ""}
-                                onChange={(e) => setSelectedCategory(e.target.value ? parseInt(e.target.value) : null)}
-                                className="w-full appearance-none bg-gray-50/70 dark:bg-zinc-800/70 border border-gray-200 dark:border-zinc-700 rounded-full py-2 px-4 pr-4 pl-10 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-64">
+                            <button
+                                type="button"
+                                onClick={() => setCategoryDropdownOpen((o) => !o)}
+                                className="w-full text-right bg-gray-50/70 dark:bg-zinc-800/70 border border-gray-200 dark:border-zinc-700 rounded-full py-2 px-4 pl-10 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-orange-500 transition-all cursor-pointer"
                             >
-                                <option value="">اختر تصنيف</option>
-                                {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.name || cat.name_ar}
-                                    </option>
-                                ))}
-                            </select>
+                                {categories.find((c) => c.id === selectedCategory)?.name || "اختر تصنيف"}
+                            </button>
                             <FiChevronDown className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-base" />
+                            {categoryDropdownOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-30" onClick={() => setCategoryDropdownOpen(false)} />
+                                    <ul className="absolute z-40 mt-1 w-full max-h-72 overflow-auto rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg py-1">
+                                        <li
+                                            onClick={() => { setSelectedCategory(null); setCategoryDropdownOpen(false); }}
+                                            className="px-4 py-2 text-sm text-gray-500 hover:bg-orange-50 dark:hover:bg-zinc-800 cursor-pointer"
+                                        >
+                                            كل التصنيفات
+                                        </li>
+                                        {categories.map((cat) => (
+                                            <li
+                                                key={cat.id}
+                                                className={`flex items-center justify-between gap-2 px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-zinc-800 cursor-pointer ${selectedCategory === cat.id ? "text-orange-500 font-semibold" : "text-gray-700 dark:text-gray-200"}`}
+                                                onClick={() => { setSelectedCategory(cat.id); setCategoryDropdownOpen(false); }}
+                                            >
+                                                <span className="truncate">{cat.name || cat.name_ar}</span>
+                                                <span className="flex items-center gap-2 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        title="تعديل"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setEditingCategoryId(cat.id);
+                                                            setCategoryForm((p) => ({ ...p, name: cat.name || cat.name_ar || "" }));
+                                                            setCategoryDropdownOpen(false);
+                                                            setShowCategoryModal(true);
+                                                        }}
+                                                        className="text-gray-400 hover:text-orange-500"
+                                                    >
+                                                        <FiEdit2 size={14} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        title="حذف"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setCategoryDropdownOpen(false);
+                                                            handleDeleteCategory(cat.id);
+                                                        }}
+                                                        className="text-gray-400 hover:text-red-500"
+                                                    >
+                                                        <FiTrash2 size={14} />
+                                                    </button>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditingCategoryId(null);
+                                setCategoryForm((p) => ({ ...p, name: "" }));
+                                setShowCategoryModal(true);
+                            }}
+                            className="shrink-0 flex items-center gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium py-2 px-4 transition-colors"
+                        >
+                            <FiPlus size={15} />
+                            إضافة تصنيف
+                        </button>
+                        </div>
+                        {deleteTarget !== null && (
+                            <div
+                                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                                onClick={() => !deletingCategory && setDeleteTarget(null)}
+                            >
+                                <div
+                                    dir="rtl"
+                                    className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 p-6 space-y-5 text-center"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-500">
+                                        <FiTrash2 size={22} />
+                                    </div>
+                                    <p className="text-base font-semibold text-gray-800 dark:text-gray-100">
+                                        {`هل تريد حذف التصنيف "${categories.find((c) => c.id === deleteTarget)?.name || ""}"؟`}
+                                    </p>
+                                    <div className="flex justify-center gap-2">
+                                        <button
+                                            type="button"
+                                            disabled={deletingCategory}
+                                            onClick={() => setDeleteTarget(null)}
+                                            className="rounded-full px-5 py-2 text-sm border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300"
+                                        >
+                                            إلغاء
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={deletingCategory}
+                                            onClick={confirmDeleteCategory}
+                                            className="rounded-full px-5 py-2 text-sm bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
+                                        >
+                                            {deletingCategory ? "جاري الحذف..." : "حذف"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {showCategoryModal && (
+                            <div
+                                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                                onClick={() => setShowCategoryModal(false)}
+                            >
+                                <div
+                                    dir="rtl"
+                                    className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 p-6 space-y-4"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{editingCategoryId !== null ? "تعديل التصنيف" : "إضافة تصنيف جديد"}</h3>
+                                    <div className="space-y-1">
+                                        <label className="text-sm text-gray-600 dark:text-gray-300">اسم التصنيف</label>
+                                        <input
+                                            type="text"
+                                            value={categoryForm.name}
+                                            onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
+                                            className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg py-2 px-3 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-orange-500"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-2 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCategoryModal(false)}
+                                            className="rounded-full px-4 py-2 text-sm border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300"
+                                        >
+                                            إلغاء
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={savingCategory}
+                                            onClick={handleCreateCategory}
+                                            className="rounded-full px-4 py-2 text-sm bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-60"
+                                        >
+                                            {savingCategory ? "جاري الحفظ..." : "حفظ"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Table */}
