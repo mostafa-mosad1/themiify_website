@@ -516,7 +516,7 @@ const SideBarContent: React.FC = () => {
 
   return (
     <aside
-      className="w-full h-full fixed top-0 right-0 z-50 flex flex-col rounded-2xl shadow-sm resSideBar !border-none lg:w-[20%] xl:w-[15%] lg:min-w-[250px] lg:sticky lg:top-0 lg:h-auto lg:self-start lg:bg-glass"
+      className="w-full h-full fixed top-0 right-0 z-50 flex flex-col rounded-2xl shadow-sm resSideBar !border-none lg:w-[20%] xl:w-[15%] lg:min-w-[250px] lg:sticky lg:top-0 lg:h-[100vh] lg:max-h-[100vh] lg:self-start lg:bg-glass"
       role="navigation"
       aria-label="Sidebar navigation"
     >
@@ -528,7 +528,7 @@ const SideBarContent: React.FC = () => {
       />
 
       {/* Sidebar panel */}
-      <div className="w-[80%] max-w-[320px] lg:w-full flex flex-col border-white/80 bg-glass lg:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] lg:!bg-transparent z-50 h-full lg:h-[90vh] lg:rounded-2xl p-2 transition-transform duration-300 justify-between">
+      <div className="w-[80%] max-w-[320px] lg:w-full flex flex-col border-white/80 bg-glass lg:bg-glass !bg-white dark:!bg-[var(--bg-secondary)] lg:!bg-transparent z-50 h-full lg:h-[100vh] lg:max-h-[100vh] overflow-y-auto lg:rounded-2xl p-2 transition-transform duration-300 justify-between">
         {/* Header: logo + close button */}
         <div className="flex items-center justify-between mb-8 mt-4">
           <div
